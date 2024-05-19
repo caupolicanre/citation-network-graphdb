@@ -8,7 +8,7 @@ import neomodel
 from neomodel import (
     config, StructuredNode, StructuredRel,
     UniqueIdProperty, StringProperty, IntegerProperty, FloatProperty, BooleanProperty,
-    DateProperty, DateTimeProperty, AliasProperty, JSONProperty, ArrayProperty,
+    DateProperty, DateTimeProperty, DateTimeFormatProperty, AliasProperty, JSONProperty, ArrayProperty,
     Relationship, RelationshipTo, RelationshipFrom, One, ZeroOrOne, ZeroOrMore, OneOrMore
 )
 
