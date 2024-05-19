@@ -12,10 +12,12 @@ from neomodel import (
     Relationship, RelationshipTo, RelationshipFrom, One, ZeroOrOne, ZeroOrMore, OneOrMore
 )
 
+from apps.author.models import AuthorOrganizationRel
+
 
 class Institution(StructuredNode):
     inst_id = UniqueIdProperty()
-    name = StringProperty(unique_index=True, index=True, required=True)
+    name = StringProperty(unique_index=True, required=True)
 
     def __str__(self):
         return self.name
@@ -23,6 +25,7 @@ class Institution(StructuredNode):
 
 class Organization(Institution):
     org_id = UniqueIdProperty()
+    author = RelationshipFrom('apps.author.models.Author', 'AFFILIATED_WITH', cardinality=ZeroOrMore, model=AuthorOrganizationRel)
 
 
 class Publisher(Institution):
@@ -31,12 +34,12 @@ class Publisher(Institution):
 
 class VenueType(StructuredNode):
     venue_type_id = UniqueIdProperty()
-    type = StringProperty(unique_index=True, index=True, required=True)
+    type = StringProperty(unique_index=True, required=True)
 
 
 class Venue(Institution):
-    venue_id = IntegerProperty(unique_index=True, index=True, required=True)
-    type = Relationship('VenueType', 'OF_TYPE', cardinality=One, required=True)
+    venue_id = IntegerProperty(unique_index=True, required=True)
+    type = Relationship('VenueType', 'OF_TYPE', cardinality=One)
 
     def __str__(self):
         return f'{self.name} ({self.type.type})'
