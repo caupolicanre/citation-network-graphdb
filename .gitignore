@@ -167,4 +167,5 @@ cython_debug/
 *.wakatime-project
 
 # Dataset (because it is a large file, link to the dataset is provided in the README.md file)
-dataset/
+dataset/*.zip
+dblp.v*.json
