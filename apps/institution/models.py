@@ -6,26 +6,10 @@ import dotenv
 from neo4j import GraphDatabase
 import neomodel
 from neomodel import (
-    config,
-    StructuredNode,
-    StructuredRel,
-    UniqueIdProperty,
-    StringProperty,
-    IntegerProperty,
-    FloatProperty,
-    BooleanProperty,
-    DateProperty,
-    DateTimeProperty,
-    AliasProperty,
-    JSONProperty,
-    ArrayProperty,
-    Relationship,
-    RelationshipTo,
-    RelationshipFrom,
-    One,
-    ZeroOrOne,
-    ZeroOrMore,
-    OneOrMore
+    config, StructuredNode, StructuredRel,
+    UniqueIdProperty, StringProperty, IntegerProperty, FloatProperty, BooleanProperty,
+    DateProperty, DateTimeProperty, AliasProperty, JSONProperty, ArrayProperty,
+    Relationship, RelationshipTo, RelationshipFrom, One, ZeroOrOne, ZeroOrMore, OneOrMore
 )
 
 
