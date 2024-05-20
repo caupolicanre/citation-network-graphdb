@@ -30,16 +30,21 @@ class Organization(Institution):
 
 class Publisher(Institution):
     pub_id = UniqueIdProperty()
+    paper = RelationshipFrom('apps.paper.models.Paper', 'PUBLISHED_BY', cardinality=ZeroOrMore)
 
 
 class VenueType(StructuredNode):
     venue_type_id = UniqueIdProperty()
     type = StringProperty(unique_index=True, required=True)
 
+    def __str__(self):
+        return self.type
+
 
 class Venue(Institution):
     venue_id = IntegerProperty(unique_index=True, required=True)
-    type = Relationship('VenueType', 'OF_TYPE', cardinality=One)
+    type = RelationshipTo('VenueType', 'OF_TYPE', cardinality=One)
+    paper = RelationshipFrom('apps.paper.models.Paper', 'PRESENTED_AT', cardinality=ZeroOrMore)
 
     def __str__(self):
         return f'{self.name} ({self.type.type})'
