@@ -3,6 +3,9 @@ import json
 import ijson
 import chardet
 
+from database.funcs import detect_encoding
+
+
 start_time = time.time()
 end_time = None
 
@@ -12,12 +15,7 @@ output_file = './dataset/unique_venue_types.json'
 
 unique_venue_types = set()
 
-
-with open(input_file, 'rb') as f:
-    raw_data = f.read(10000)
-
-result = chardet.detect(raw_data)
-encoding = result['encoding']
+encoding = detect_encoding(input_file)
 
 print(f'Detected encoding: {encoding}')
 
