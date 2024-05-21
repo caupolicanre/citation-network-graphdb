@@ -24,7 +24,7 @@ class DocumentType(StructuredNode):
 class FieldOfStudy(StructuredNode):
     fos_id = UniqueIdProperty()
     name = StringProperty(unique_index=True, required=True)
-    codename = StringProperty(unique_index=True, required=True)
+    # codename = StringProperty(unique_index=True, required=True)
 
     def __str__(self):
         return self.name
@@ -38,7 +38,7 @@ class PaperFieldOfStudyRel(StructuredRel):
 class Paper(StructuredNode):
     paper_id = IntegerProperty(unique_index=True, required=True)
     title = StringProperty(unique_index=True, required=True)
-    doi = StringProperty(unique_index=True, default=None)
+    doi = StringProperty(default=None)
     year = DateTimeFormatProperty(format='%Y')
     page_start = IntegerProperty(max_length=4, default=None)
     page_end = IntegerProperty(max_length=4, default=None)

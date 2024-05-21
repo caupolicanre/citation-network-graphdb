@@ -52,7 +52,7 @@ class VenueType(StructuredNode):
 
 class Venue(StructuredNode):
     venue_id = IntegerProperty(unique_index=True, required=True)
-    name = StringProperty(unique_index=True, required=True)
+    name = StringProperty(required=True)
     type = RelationshipTo('VenueType', 'OF_TYPE', cardinality=One)
     paper = RelationshipFrom('apps.paper.models.Paper', 'PRESENTED_AT', cardinality=ZeroOrMore)
 
