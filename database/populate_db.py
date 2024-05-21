@@ -1,10 +1,19 @@
 import os
 from os.path import join, dirname
 
+from datetime import datetime
 import dotenv
+import ijson
+import chardet
 
 from neo4j import GraphDatabase
 from neomodel import config
+
+from database.funcs import detect_encoding
+
+from apps.author.models import Author, AuthorOrganizationRel
+from apps.institution.models import Organization, Publisher, Venue, VenueType
+from apps.paper.models import Paper, FieldOfStudy, PaperFieldOfStudyRel, DocumentType
 
 
 dotenv_path = join(dirname(__file__), '.env')
@@ -20,3 +29,181 @@ config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
 config.DATABASE_NAME = DB_NAME
 
 
+dataset_path = './dataset/dblp.v12.json'
+encoding = detect_encoding(dataset_path)
+
+
+
+def create_nodes(obj: dict):
+    '''
+    Create nodes for each paper in the dataset.
+    Then connect the nodes to their respective relationships.
+
+    Parameters
+    ----------
+    obj : dict
+        A dictionary containing the paper's information.
+        Field's values type documented here are how they come from the dataset.
+        Fields:
+            - id: int (required)
+                Paper ID
+            - authors: list (required)
+                List of authors. Each element is a dict. Fields: id (int), name (str), org (str).
+            - title: str (required)
+                Paper Title.
+            - year: int
+                Year of publication. Format: %Y
+            - n_citation: int
+                Number of citations.
+            - page_start: string
+                Starting page number.
+            - page_end: string
+                Ending page number.
+            - doc_type: string
+                Document type.
+            - publisher: string
+                Publisher name.
+            - volume: string
+                Volume number.
+            - issue: string
+                Issue number.
+            - doi: str
+                Digital Object Identifier.
+            - references: list
+                List of references. Each reference is an int.
+            - fos: list
+                List of fields of study. Each element is a dict. Fields: name (str), w (float).
+            - venue: dict
+                Venue information. Fields: id (int), raw (str), type (str).
+    '''
+    paper_id = int(obj['id']) # Int
+    title = obj['title'] # String
+    doi = obj.get('doi', None) # String
+    year = obj.get('year', None) # Int Date Format Y
+    page_start = obj.get('page_start', None) # Int
+    page_end = obj.get('page_end', None) # Int
+    volume = obj.get('volume', None) # Int
+    issue = obj.get('issue', None) # Int
+    n_citation = obj.get('n_citation', 0) # Int
+
+    doc_type = obj.get('doc_type', None)
+    publisher = obj.get('publisher', None)
+    venue = obj.get('venue', None)
+    authors = obj.get('authors', None) # List of Dict
+    fields_of_study = obj.get('fos', None) # List of Dict
+    references = obj.get('references', None) # List of Int
+
+
+    paper = Paper.nodes.get_or_none(paper_id=paper_id)
+    if paper is None:
+        paper = Paper(
+            paper_id = paper_id,
+            title = title,
+            doi = doi if (doi is not None and doi != '') else None,
+            year = datetime.strptime(str(year), '%Y') if year else None,
+            page_start = int(page_start) if page_start else None,
+            page_end = int(page_end) if page_end else None,
+            volume = int(volume) if volume else None,
+            issue = int(issue) if issue else None,
+            n_citation = n_citation
+        ).save()
+
+
+        if doc_type is not None:
+            document_type_node = DocumentType.nodes.get_or_none(type=doc_type)
+            if document_type_node is None:
+                document_type_node = DocumentType(
+                    type=doc_type
+                ).save()
+
+            paper.type.connect(document_type_node)
+        
+
+        if publisher is not None:
+            publisher_node = Publisher.nodes.get_or_none(name=publisher)
+            if publisher_node is None:
+                publisher_node = Publisher(
+                    name=publisher
+                ).save()
+
+            paper.publisher.connect(publisher_node)
+        
+
+        if venue is not None and 'id' in venue:
+            venue_id = int(venue['id'])
+            venue_node = Venue.nodes.get_or_none(venue_id=venue_id)
+            if venue_node is None:
+                venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
+
+                if venue_type_node is None:
+                    venue_type_node = VenueType(
+                        type=venue['type']
+                    ).save()
+
+                venue_node = Venue(
+                    venue_id=venue_id,
+                    name=venue['raw']
+                ).save()
+                venue_node.type.connect(venue_type_node)
+
+            paper.venue.connect(venue_node)
+
+
+        if authors is not None:
+            for author in authors:
+                author_id = int(author['id'])
+                author_node = Author.nodes.get_or_none(author_id=author_id)
+        
+                if author_node is None:
+                    author_node = Author(
+                        author_id=author_id,
+                        name=author['name']
+                    ).save()
+
+                author_node.paper.connect(paper)
+
+                if 'org' in author:
+                    if author['org'] is not None:
+                        org_node = Organization.nodes.get_or_none(name=author['org'])
+                        if org_node is None:
+                            org_node = Organization(
+                                name=author['org']
+                            ).save()
+
+                        author_node.organization.connect(org_node)
+
+
+        if fields_of_study is not None:
+            for field in fields_of_study:
+                codename = '_'.join(field['name'].lower()\
+                                                 .replace('-', ' ')\
+                                                 .replace('/', ' ')\
+                                                 .replace('(', ' ')\
+                                                 .split())
+
+                fos_node = FieldOfStudy.nodes.get_or_none(name=field['name'])
+
+                if fos_node is None:
+                    fos_node = FieldOfStudy(
+                        name=field['name'],
+                        codename=codename
+                    ).save()
+                
+                paper.field_of_study.connect(fos_node, {'weight': field['w']})
+        
+
+        if references is not None:
+            for ref in references:
+                ref_node = Paper.nodes.get_or_none(paper_id=ref)
+                if ref_node is not None:
+                    paper.reference.connect(ref_node)
+
+
+
+i = 0
+
+with open(dataset_path, 'r', encoding=encoding) as f:
+    objects = ijson.items(f, 'item')
+
+    for obj in objects:
+        create_nodes(obj)
