@@ -89,118 +89,102 @@ def create_nodes(obj: dict):
     doc_type = obj.get('doc_type', None)
     publisher = obj.get('publisher', None)
     venue = obj.get('venue', None)
-    authors = obj.get('authors', None) # List of Dict
-    fields_of_study = obj.get('fos', None) # List of Dict
-    references = obj.get('references', None) # List of Int
+    authors = obj.get('authors', []) # List of Dict
+    fields_of_study = obj.get('fos', []) # List of Dict
+    references = obj.get('references', []) # List of Int
 
 
-    paper = Paper.nodes.get_or_none(paper_id=paper_id)
-    if paper is None:
+    paper_node = Paper.nodes.get_or_none(paper_id=paper_id)
+
+    if not paper_node:
+
         paper = Paper(
-            paper_id = paper_id,
-            title = title,
-            doi = doi if (doi is not None and doi != '') else None,
-            year = datetime.strptime(str(year), '%Y') if year else None,
-            page_start = int(page_start) if page_start else None,
-            page_end = int(page_end) if page_end else None,
-            volume = int(volume) if volume else None,
-            issue = int(issue) if issue else None,
-            n_citation = n_citation
+            paper_id=paper_id,
+            title=title,
+            doi=doi if (doi is not None and doi != '') else None,
+            year=datetime.strptime(str(year), '%Y') if year else None,
+            page_start=int(page_start) if page_start else None,
+            page_end=int(page_end) if page_end else None,
+            volume=int(volume) if volume else None,
+            issue=int(issue) if issue else None,
+            n_citation=n_citation
         ).save()
 
 
-        if doc_type is not None:
-            document_type_node = DocumentType.nodes.get_or_none(type=doc_type)
-            if document_type_node is None:
-                document_type_node = DocumentType(
-                    type=doc_type
-                ).save()
+        if doc_type:
+            doc_type_node = DocumentType.nodes.get_or_none(type=doc_type)
+            if not doc_type_node:
+                doc_type_node = DocumentType(type=doc_type).save()
 
-            paper.type.connect(document_type_node)
-        
+            if not paper.type.is_connected(doc_type_node):
+                paper.type.connect(doc_type_node)
 
-        if publisher is not None:
+
+        if publisher:
             publisher_node = Publisher.nodes.get_or_none(name=publisher)
-            if publisher_node is None:
-                publisher_node = Publisher(
-                    name=publisher
-                ).save()
-
-            paper.publisher.connect(publisher_node)
-        
-
-        if venue is not None and 'id' in venue:
-            venue_id = int(venue['id'])
-            venue_node = Venue.nodes.get_or_none(venue_id=venue_id)
-            if venue_node is None:
-                venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
-
-                if venue_type_node is None:
-                    venue_type_node = VenueType(
-                        type=venue['type']
-                    ).save()
-
-                venue_node = Venue(
-                    venue_id=venue_id,
-                    name=venue['raw']
-                ).save()
-                venue_node.type.connect(venue_type_node)
-
-            paper.venue.connect(venue_node)
+            if not publisher_node:
+                publisher_node = Publisher(name=publisher).save()
+            
+            if not paper.publisher.is_connected(publisher_node):
+                paper.publisher.connect(publisher_node)
 
 
-        if authors is not None:
-            for author in authors:
-                author_id = int(author['id'])
-                author_node = Author.nodes.get_or_none(author_id=author_id)
-        
-                if author_node is None:
-                    author_node = Author(
-                        author_id=author_id,
-                        name=author['name']
-                    ).save()
+        for author_data in authors:
+            author_id = int(author_data['id'])
+            author_node = Author.nodes.get_or_none(author_id=author_id, name=author_data['name'])
+            if not author_node:
+                try:
+                    author_node = Author(author_id=author_id, name=author_data['name']).save()
+                except Exception as e:
+                    continue # Skip if author already exists
+            
+            if not paper.author.is_connected(author_node):
+                paper.author.connect(author_node)
 
-                author_node.paper.connect(paper)
-
-                if 'org' in author:
-                    if author['org'] is not None:
-                        org_node = Organization.nodes.get_or_none(name=author['org'])
-                        if org_node is None:
-                            org_node = Organization(
-                                name=author['org']
-                            ).save()
-
-                        author_node.organization.connect(org_node)
-
-
-        if fields_of_study is not None:
-            for field in fields_of_study:
-                codename = '_'.join(field['name'].lower()\
-                                                 .replace('-', ' ')\
-                                                 .replace('/', ' ')\
-                                                 .replace('(', ' ')\
-                                                 .split())
-
-                fos_node = FieldOfStudy.nodes.get_or_none(name=field['name'])
-
-                if fos_node is None:
-                    fos_node = FieldOfStudy(
-                        name=field['name'],
-                        codename=codename
-                    ).save()
+            if author_data.get('org'):
+                organization_node = Organization.nodes.get_or_none(name=author_data['org'])
+                if not organization_node:
+                    organization_node = Organization(name=author_data['org']).save()
                 
-                paper.field_of_study.connect(fos_node, {'weight': field['w']})
-        
-
-        if references is not None:
-            for ref in references:
-                ref_node = Paper.nodes.get_or_none(paper_id=ref)
-                if ref_node is not None:
-                    paper.reference.connect(ref_node)
+                if not author_node.organization.is_connected(organization_node):
+                    author_node.organization.connect(organization_node)
 
 
+        for fos_data in fields_of_study:
+            fos_node = FieldOfStudy.nodes.get_or_none(name=fos_data['name'])
+            if not fos_node:
+                fos_node = FieldOfStudy(name=fos_data['name']).save()
+            
+            if not paper.field_of_study.is_connected(fos_node):
+                paper.field_of_study.connect(fos_node, {'weight': fos_data["w"]})
 
-i = 0
+
+        for ref_id in references:
+            ref_paper = Paper.nodes.get_or_none(paper_id=ref_id)
+            if ref_paper:
+                paper.reference.connect(ref_paper)
+
+
+        if venue:
+            if venue.get("id"):
+                venue_node = Venue.nodes.get_or_none(venue_id=venue["id"])
+                if not venue_node:
+                    try:
+                        venue_node = Venue(venue_id=venue["id"], name=venue["raw"]).save()
+
+                        venue_type_node = VenueType.nodes.get_or_none(type=venue["type"])
+                        if not venue_type_node:
+                            venue_type_node = VenueType(type=venue["type"]).save()
+                        
+                        if not venue_node.type.is_connected(venue_type_node):
+                            venue_node.type.connect(venue_type_node)
+
+                        paper.venue.connect(venue_node)
+
+                    except Exception as e:
+                        pass # Skip if venue already exists
+
+
 
 with open(dataset_path, 'r', encoding=encoding) as f:
     objects = ijson.items(f, 'item')
