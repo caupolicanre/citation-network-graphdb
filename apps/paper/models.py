@@ -14,7 +14,7 @@ from neomodel import (
 
 
 class DocumentType(StructuredNode):
-    type_id = IntegerProperty(unique_index=True, required=True)
+    type_id = UniqueIdProperty()
     type = StringProperty(unique_index=True, required=True)
 
     def __str__(self):
@@ -24,6 +24,7 @@ class DocumentType(StructuredNode):
 class FieldOfStudy(StructuredNode):
     fos_id = UniqueIdProperty()
     name = StringProperty(unique_index=True, required=True)
+    codename = StringProperty(unique_index=True, required=True)
 
     def __str__(self):
         return self.name
@@ -48,7 +49,7 @@ class Paper(StructuredNode):
     type = RelationshipTo('DocumentType', 'OF_TYPE', cardinality=One)
     publisher = RelationshipTo('apps.institution.models.Publisher', 'PUBLISHED_BY', cardinality=One)
     venue = RelationshipTo('apps.institution.models.Venue', 'PRESENTED_AT', cardinality=ZeroOrOne)
-    author = RelationshipFrom('apps.author.models.Author', 'AUTHORED_BY', cardinality=OneOrMore)
+    author = RelationshipTo('apps.author.models.Author', 'AUTHORED_BY', cardinality=OneOrMore)
     field_of_study = Relationship('FieldOfStudy', 'RELATED_TO', cardinality=ZeroOrMore, model=PaperFieldOfStudyRel)
     reference = Relationship('Paper', 'CITES', cardinality=ZeroOrMore)
 
