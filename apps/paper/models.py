@@ -24,7 +24,6 @@ class DocumentType(StructuredNode):
 class FieldOfStudy(StructuredNode):
     fos_id = UniqueIdProperty()
     name = StringProperty(unique_index=True, required=True)
-    # codename = StringProperty(unique_index=True, required=True)
 
     def __str__(self):
         return self.name
