@@ -93,8 +93,20 @@ def create_nodes(obj: dict):
     fields_of_study = obj.get('fos', []) # List of Dict
     references = obj.get('references', []) # List of Int
 
+    if page_start:
+        page_start = int(''.join(filter(str.isdigit, page_start)))
+    
+    if page_end:
+        page_end = int(''.join(filter(str.isdigit, page_end)))
+    
+    if volume:
+        volume = int(''.join(filter(str.isdigit, volume)))
+    
+    if issue:
+        issue = int(''.join(filter(str.isdigit, issue)))
 
-    paper_node = Paper.nodes.get_or_none(paper_id=paper_id)
+
+    paper_node = Paper.nodes.get_or_none(title=title)
 
     if not paper_node:
 
@@ -131,12 +143,9 @@ def create_nodes(obj: dict):
 
         for author_data in authors:
             author_id = int(author_data['id'])
-            author_node = Author.nodes.get_or_none(author_id=author_id, name=author_data['name'])
+            author_node = Author.nodes.get_or_none(name=author_data['name'])
             if not author_node:
-                try:
-                    author_node = Author(author_id=author_id, name=author_data['name']).save()
-                except Exception as e:
-                    continue # Skip if author already exists
+                author_node = Author(author_id=author_id, name=author_data['name']).save()
             
             if not paper.author.is_connected(author_node):
                 paper.author.connect(author_node)
