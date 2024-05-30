@@ -143,7 +143,13 @@ def create_nodes(obj: dict):
 
         for author_data in authors:
             author_id = int(author_data['id'])
-            author_node = Author.nodes.get_or_none(name=author_data['name'])
+            author_node = Author.nodes.get_or_none(author_id=author_id)
+
+            # If not found by author_id, try to find by name
+            if not author_node:
+                author_node = Author.nodes.get_or_none(name=author_data['name'])
+
+            # If not found at all, create a new node
             if not author_node:
                 author_node = Author(author_id=author_id, name=author_data['name']).save()
             
@@ -175,23 +181,21 @@ def create_nodes(obj: dict):
 
 
         if venue:
-            if venue.get("id"):
-                venue_node = Venue.nodes.get_or_none(venue_id=venue["id"])
-                if not venue_node:
-                    try:
-                        venue_node = Venue(venue_id=venue["id"], name=venue["raw"]).save()
+            venue_node = Venue.nodes.get_or_none(name=venue['raw'])
 
-                        venue_type_node = VenueType.nodes.get_or_none(type=venue["type"])
-                        if not venue_type_node:
-                            venue_type_node = VenueType(type=venue["type"]).save()
-                        
-                        if not venue_node.type.is_connected(venue_type_node):
-                            venue_node.type.connect(venue_type_node)
+            if not venue_node:
+                venue_node = Venue(name=venue['raw']).save()
 
-                        paper.venue.connect(venue_node)
+                if venue.get('type'):
+                    venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
+                    if not venue_type_node:
+                        venue_type_node = VenueType(type=venue['type']).save()
+                
+                    if not venue_node.type.is_connected(venue_type_node):
+                        venue_node.type.connect(venue_type_node)
 
-                    except Exception as e:
-                        pass # Skip if venue already exists
+            paper.venue.connect(venue_node)
+
 
 
 print('\nStarting to populate the Graph Database')
