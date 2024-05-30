@@ -1,6 +1,7 @@
-
 # Citation Network Graph DataBase
+[![wakatime](https://wakatime.com/badge/user/018c27a8-f9f9-40a7-b4b2-4508370458bd/project/31cc6135-e8ab-4bb5-9325-ddc17baf2244.svg)](https://wakatime.com/badge/user/018c27a8-f9f9-40a7-b4b2-4508370458bd/project/31cc6135-e8ab-4bb5-9325-ddc17baf2244)
 
+## About
 This project focuses on implementing a graph-oriented database using Neo4j to explore and analyze citation networks.
 
 
@@ -37,7 +38,7 @@ pip install -r requirements.pip
 ### Apply Constraints and Relations on DB
 Apply labels in the DataBase
 ```bash
-neomodel_install_labels --db bolt://<user>:<db_password>@<ip_address>:<port>/<db_name> <someapp.models/app.py> <someapp.models/app.py>
+neomodel_install_labels --db bolt://<neo4j_user>:<db_password>@<ip_address>:<port>/<db_name> apps.author.models apps.institution.models apps.paper.models
 ```
 ## Useful Links
 #### Websites
