@@ -4,7 +4,7 @@ from os.path import join, dirname
 from datetime import datetime
 import dotenv
 import ijson
-import chardet
+from tqdm import tqdm
 
 from neo4j import GraphDatabase
 from neomodel import config
@@ -194,9 +194,12 @@ def create_nodes(obj: dict):
                         pass # Skip if venue already exists
 
 
+print('\nStarting to populate the Graph Database')
 
 with open(dataset_path, 'r', encoding=encoding) as f:
     objects = ijson.items(f, 'item')
 
-    for obj in objects:
+    for obj in tqdm(objects, desc='Creating nodes', unit=' papers'):
         create_nodes(obj)
+
+print('\nGraph Database loaded successfully')
