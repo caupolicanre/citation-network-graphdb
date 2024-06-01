@@ -9,7 +9,7 @@ from tqdm import tqdm
 from neo4j import GraphDatabase
 from neomodel import config
 
-from database.funcs import detect_encoding
+from database.utils.funcs import detect_encoding
 
 from apps.author.models import Author, AuthorOrganizationRel
 from apps.institution.models import Organization, Publisher, Venue, VenueType
