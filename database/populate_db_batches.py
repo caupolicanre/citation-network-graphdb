@@ -17,23 +17,53 @@ from apps.institution.models import Organization, Publisher, Venue, VenueType
 from apps.paper.models import Paper, FieldOfStudy, PaperFieldOfStudyRel, DocumentType
 
 
+
 dotenv_path = join(dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
-
-URI = os.environ.get('DB_URI')
-TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
-TEST_DB_USER = os.environ.get('TEST_DB_USER')
-TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
-AUTH = (TEST_DB_USER, TEST_DB_PASS)
-
-config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
-config.DATABASE_NAME = TEST_DB_NAME
-
 
 dataset_path = './dataset/dblp.v12.json'
 encoding = detect_encoding(dataset_path)
 
 BATCH_SIZE = 1000
+nodes_batch = []
+
+
+
+print('===================================')
+print(' Populate Database: Document Types')
+print('===================================')
+print('Choose Database:\n1. Production\n2. Test')
+
+db_option = None
+while db_option not in ['Production', 'Test']:
+    db_option = input('\nDatabase: ')
+
+    if db_option not in ['Production', 'Test']:
+        print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
+
+TEST = True if db_option == 'Test' else False
+
+URI = os.environ.get('DB_URI')
+
+if TEST:
+    TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
+    TEST_DB_USER = os.environ.get('TEST_DB_USER')
+    TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
+    AUTH = (TEST_DB_USER, TEST_DB_PASS)
+
+    config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
+    config.DATABASE_NAME = TEST_DB_NAME
+
+else:
+    DB_NAME = os.environ.get('DB_NAME')
+    DB_USER = os.environ.get('DB_USER')
+    DB_PASS = os.environ.get('DB_PASS')
+    AUTH = (DB_USER, DB_PASS)
+
+    config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
+    config.DATABASE_NAME = DB_NAME
+
+
 
 
 def create_nodes_batch(nodes):
@@ -167,8 +197,6 @@ def create_nodes_batch(nodes):
 
 print('\nStarting to populate the Graph Database')
 
-
-nodes_batch = []
 
 with open(dataset_path, 'r', encoding=encoding) as f:
     objects = ijson.items(f, 'item')
