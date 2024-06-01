@@ -4,6 +4,8 @@ from os.path import join, dirname
 import dotenv
 import time
 
+import pandas as pd
+
 import neo4j
 from neo4j import GraphDatabase
 
@@ -48,21 +50,13 @@ else:
 
 
 
-def create_indexes(uri: str, auth: tuple):
+def create_index(uri: str, auth: tuple, node_label: str, field_name: str):
     driver = GraphDatabase.driver(uri, auth=auth)
     with driver.session() as session:
         try:
-            session.run("CREATE INDEX FOR (p:Paper) ON (p.paper_id)")
-            session.run("CREATE INDEX FOR (p:Paper) ON (p.title)")
+            print(f'\nCreating index for {node_label}.{field_name}')
+            session.run(f"CREATE INDEX FOR (n:{node_label}) ON (n.{field_name})")
 
-            session.run("CREATE INDEX FOR (a:Author) ON (a.author_id)")
-            session.run("CREATE INDEX FOR (a:Author) ON (a.name)")
-
-            session.run("CREATE INDEX FOR (o:Organization) ON (o.name)")
-            session.run("CREATE INDEX FOR (v:Venue) ON (v.name)")
-
-            session.run("CREATE INDEX FOR (f:FieldOfStudy) ON (f.name)")
-        
         except neo4j.exceptions.ClientError as e:
             if 'EquivalentSchemaRuleAlreadyExists' in str(e):
                 print('\nAn equivalent index already exists.')
@@ -73,4 +67,41 @@ def create_indexes(uri: str, auth: tuple):
     driver.close()
 
 
-create_indexes(DB_URL, AUTH)
+def get_indexes(uri: str, auth: tuple) -> pd.DataFrame:
+    driver = GraphDatabase.driver(uri, auth=auth)
+    
+    with driver.session() as session:
+        result = session.run('SHOW INDEXES')
+        indexes = result.data()
+        df = pd.DataFrame(indexes)
+    driver.close()
+
+    return df
+
+        
+
+
+nodes_to_index = [
+    {'node_label': 'Paper', 'field_name': 'paper_id'},
+    {'node_label': 'Paper', 'field_name': 'title'},
+
+    {'node_label': 'Author', 'field_name': 'author_id'},
+    {'node_label': 'Author', 'field_name': 'name'},
+
+    {'node_label': 'Organization', 'field_name': 'name'},
+    {'node_label': 'Venue', 'field_name': 'name'},
+
+    {'node_label': 'FieldOfStudy', 'field_name': 'name'}
+]
+
+print('\nCreating indexes for the database...')
+
+for node in nodes_to_index:
+    create_index(DB_URL, AUTH, node['node_label'], node['field_name'])
+
+print('\nIndexes created successfully.')
+
+
+print('\nIndexes in the database:')
+indexes = get_indexes(DB_URL, AUTH)
+print(indexes)
