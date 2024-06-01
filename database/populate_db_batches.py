@@ -29,9 +29,9 @@ nodes_batch = []
 
 
 
-print('===================================')
-print(' Populate Database: Document Types')
-print('===================================')
+print('===============================')
+print(' Populate Database by Batches')
+print('===============================')
 print('Choose Database:\n1. Production\n2. Test')
 
 db_option = None
@@ -86,15 +86,16 @@ def create_nodes_batch(nodes):
             fields_of_study = obj.get('fos', []) # List of Dict
             references = obj.get('references', []) # List of Int
 
+
+            # Clean up paper data
+            if year:
+                year = datetime.strptime(str(year), '%Y')
             if page_start:
                 page_start = int(''.join(filter(str.isdigit, page_start)))
-            
             if page_end:
                 page_end = int(''.join(filter(str.isdigit, page_end)))
-            
             if volume:
                 volume = int(''.join(filter(str.isdigit, volume)))
-            
             if issue:
                 issue = int(''.join(filter(str.isdigit, issue)))
 
@@ -107,11 +108,11 @@ def create_nodes_batch(nodes):
                     paper_id=paper_id,
                     title=title,
                     doi=doi if (doi is not None and doi != '') else None,
-                    year=datetime.strptime(str(year), '%Y') if year else None,
-                    page_start=int(page_start) if page_start else None,
-                    page_end=int(page_end) if page_end else None,
-                    volume=int(volume) if volume else None,
-                    issue=int(issue) if issue else None,
+                    year=year,
+                    page_start=page_start,
+                    page_end=page_end,
+                    volume=volume,
+                    issue=issue,
                     n_citation=n_citation
                 ).save()
 
