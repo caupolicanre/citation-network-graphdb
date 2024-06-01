@@ -10,7 +10,7 @@ dotenv.load_dotenv(dotenv_path)
 
 
 
-def neomodel_connect(db_option: Union['Production', 'Test']='Test') -> tuple[str, str]:
+def neomodel_connect(db_option: str='Test') -> tuple[str, str]:
     '''
     Set up environment variables for connecting to Neo4j database using neomodel.
     Use this function when using neomodel as the OGM.
@@ -18,7 +18,7 @@ def neomodel_connect(db_option: Union['Production', 'Test']='Test') -> tuple[str
 
     Parameters
     ----------
-    db_option : str, Union['Production', 'Test'], optional
+    db_option : str, optional
         Choose between 'Production' or 'Test' database.
         Default is 'Test'.
     
@@ -61,7 +61,7 @@ def neomodel_connect(db_option: Union['Production', 'Test']='Test') -> tuple[str
     return database_url, database_name
 
 
-def neo4j_connect(db_option: Union['Production', 'Test']='Test') -> tuple[str, str, tuple[str, str]]:
+def neo4j_connect(db_option: str='Test') -> tuple[str, str, tuple[str, str]]:
     '''
     Set up environment variables for connecting to Neo4j database using neo4j.
     Use this function when using neo4j GraphDatabase.
@@ -69,7 +69,7 @@ def neo4j_connect(db_option: Union['Production', 'Test']='Test') -> tuple[str, s
 
     Parameters
     ----------
-    db_option : str ['Production', 'Test'], optional
+    db_option : str, optional
         Choose between 'Production' or 'Test' database.
         Default is 'Test'.
     
