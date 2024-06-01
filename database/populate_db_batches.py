@@ -8,7 +8,6 @@ import dotenv
 import ijson
 from tqdm import tqdm
 
-from neo4j import GraphDatabase
 from neomodel import config, db
 
 from database.utils.funcs import detect_encoding
