@@ -1,5 +1,6 @@
 import os
 from os.path import join, dirname
+import gc
 
 import time
 from datetime import datetime
@@ -33,7 +34,7 @@ config.DATABASE_NAME = TEST_DB_NAME
 dataset_path = './dataset/dblp.v12.json'
 encoding = detect_encoding(dataset_path)
 
-BATCH_SIZE = 5000
+BATCH_SIZE = 1000
 
 
 def create_nodes_batch(nodes):
@@ -160,6 +161,7 @@ def create_nodes_batch(nodes):
                     paper.venue.connect(venue_node)
 
     time.sleep(0.1) # Sleep to free up resources
+    gc.collect()  # Garbage collection to free up memory
 
 
 
