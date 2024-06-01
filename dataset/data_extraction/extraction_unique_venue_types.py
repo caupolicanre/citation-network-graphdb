@@ -1,9 +1,8 @@
 import time
 import json
 import ijson
-import chardet
 
-from database.funcs import detect_encoding
+from database.utils.funcs import detect_encoding
 
 
 start_time = time.time()
