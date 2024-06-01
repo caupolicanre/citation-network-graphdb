@@ -102,6 +102,23 @@ def create_nodes_batch(nodes):
                     
                     if not paper.publisher.is_connected(publisher_node):
                         paper.publisher.connect(publisher_node)
+                
+
+                if venue:
+                    venue_node = Venue.nodes.get_or_none(name=venue['raw'])
+
+                    if not venue_node:
+                        venue_node = Venue(name=venue['raw']).save()
+
+                        if venue.get('type'):
+                            venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
+                            if not venue_type_node:
+                                venue_type_node = VenueType(type=venue['type']).save()
+                        
+                            if not venue_node.type.is_connected(venue_type_node):
+                                venue_node.type.connect(venue_type_node)
+
+                    paper.venue.connect(venue_node)
 
 
                 for author_data in authors:
@@ -142,22 +159,6 @@ def create_nodes_batch(nodes):
                     if ref_paper:
                         paper.reference.connect(ref_paper)
 
-
-                if venue:
-                    venue_node = Venue.nodes.get_or_none(name=venue['raw'])
-
-                    if not venue_node:
-                        venue_node = Venue(name=venue['raw']).save()
-
-                        if venue.get('type'):
-                            venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
-                            if not venue_type_node:
-                                venue_type_node = VenueType(type=venue['type']).save()
-                        
-                            if not venue_node.type.is_connected(venue_type_node):
-                                venue_node.type.connect(venue_type_node)
-
-                    paper.venue.connect(venue_node)
 
     time.sleep(0.1) # Sleep to free up resources
     gc.collect()  # Garbage collection to free up memory
