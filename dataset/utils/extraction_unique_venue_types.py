@@ -10,7 +10,7 @@ end_time = None
 
 
 input_file = './dataset/dblp.v12.json'
-output_file = './dataset/unique_venue_types.json'
+output_file = './dataset/data_extraction/unique_venue_types.json'
 
 unique_venue_types = set()
 
