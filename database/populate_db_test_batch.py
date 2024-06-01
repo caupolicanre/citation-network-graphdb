@@ -1,6 +1,7 @@
 import os
 from os.path import join, dirname
 
+import time
 from datetime import datetime
 import dotenv
 import ijson
@@ -9,7 +10,7 @@ from tqdm import tqdm
 from neo4j import GraphDatabase
 from neomodel import config, db
 
-from database.funcs import detect_encoding
+from database.utils.funcs import detect_encoding
 
 from apps.author.models import Author, AuthorOrganizationRel
 from apps.institution.models import Organization, Publisher, Venue, VenueType
@@ -20,9 +21,9 @@ dotenv_path = join(dirname(__file__), '.env')
 dotenv.load_dotenv(dotenv_path)
 
 URI = os.environ.get('DB_URI')
-TEST_DB_NAME = os.environ.get('DB_NAME')
-TEST_DB_USER = os.environ.get('DB_USER')
-TEST_DB_PASS = os.environ.get('DB_PASS')
+TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
+TEST_DB_USER = os.environ.get('TEST_DB_USER')
+TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
 AUTH = (TEST_DB_USER, TEST_DB_PASS)
 
 config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
@@ -157,6 +158,8 @@ def create_nodes_batch(nodes):
                                 venue_node.type.connect(venue_type_node)
 
                     paper.venue.connect(venue_node)
+
+    time.sleep(0.1) # Sleep to free up resources
 
 
 
