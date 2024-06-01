@@ -70,7 +70,7 @@ def create_index(node_label: str, field_name: str):
                 raise e
 
 
-def get_indexes(uri: str, auth: tuple) -> pd.DataFrame:
+def get_indexes() -> pd.DataFrame:
     with driver.session() as session:
         result = session.run('SHOW INDEXES')
         indexes = result.data()
@@ -103,7 +103,7 @@ for node in nodes_to_index:
 print('\nIndexes created successfully.')
 
 
-indexes = get_indexes(DB_URL, AUTH)
+indexes = get_indexes()
 
 print('\nIndexes in the database:')
 print(indexes)
