@@ -39,6 +39,9 @@ if TEST:
 
     DB_URL = f'bolt://{URI}/{TEST_DB_NAME}'
 
+    driver = GraphDatabase.driver(DB_URL, auth=AUTH)
+    session = driver.session(database=TEST_DB_NAME)
+
 else:
     print('\nDatabase selected: Production')
     DB_NAME = os.environ.get('DB_NAME')
@@ -48,10 +51,12 @@ else:
 
     DB_URL = f'bolt://{URI}/{DB_NAME}'
 
+    driver = GraphDatabase.driver(DB_URL, auth=AUTH)
+    session = driver.session(database=DB_NAME)
 
 
-def create_index(uri: str, auth: tuple, node_label: str, field_name: str):
-    driver = GraphDatabase.driver(uri, auth=auth)
+
+def create_index(node_label: str, field_name: str):
     with driver.session() as session:
         try:
             print(f'\nCreating index for {node_label}.{field_name}')
@@ -64,17 +69,12 @@ def create_index(uri: str, auth: tuple, node_label: str, field_name: str):
             else:
                 raise e
 
-    driver.close()
-
 
 def get_indexes(uri: str, auth: tuple) -> pd.DataFrame:
-    driver = GraphDatabase.driver(uri, auth=auth)
-    
     with driver.session() as session:
         result = session.run('SHOW INDEXES')
         indexes = result.data()
         df = pd.DataFrame(indexes)
-    driver.close()
 
     return df
 
@@ -94,14 +94,20 @@ nodes_to_index = [
     {'node_label': 'FieldOfStudy', 'field_name': 'name'}
 ]
 
+
 print('\nCreating indexes for the database...')
 
 for node in nodes_to_index:
-    create_index(DB_URL, AUTH, node['node_label'], node['field_name'])
+    create_index(node['node_label'], node['field_name'])
 
 print('\nIndexes created successfully.')
 
 
-print('\nIndexes in the database:')
 indexes = get_indexes(DB_URL, AUTH)
+
+print('\nIndexes in the database:')
 print(indexes)
+
+
+session.close()
+driver.close()
