@@ -39,7 +39,7 @@ BATCH_SIZE_REQUIRED_NODES=10000 # Optional. The file will default if not set.
 ### Virtual environment
 Open a terminal in the project's root folder and run:
 ```bash
-python -v venv .venv
+python -m venv .venv
 ```  
 
 Activate virtual environment
@@ -54,10 +54,10 @@ pip install -r requirements.pip
 ```  
 
 ### Apply Constraints and Relations on DB
-Apply labels in the DataBase
-```bash
-neomodel_install_labels --db bolt://<neo4j_user>:<db_password>@<ip_address>:<port>/<db_name> apps.author.models apps.institution.models apps.paper.models
-```
+Apply labels in the DataBase.  
+Move to './database/utils/' folder, run `install_labels.bat` and follow the instructions.
+
+
 ## Useful Links
 #### Websites
  - [Neo4j](https://neo4j.com/)
