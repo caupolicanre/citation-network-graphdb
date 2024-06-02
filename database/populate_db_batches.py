@@ -291,16 +291,38 @@ if __name__ == '__main__':
 
     if any([option in model_options for option in [1, 5, 6, 7]]):
         print('\nPaper App Nodes:')
-        print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}') if 6 in model_options or 7 in model_options else None
-        print(f'{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}') if 1 in model_options or 7 in model_options else None
-        print(f'{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}') if 5 in model_options or 7 in model_options else None
+        if 7 in model_options:
+            print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
+            print(f'{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
+            print(f'{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
+
+        elif 6 in model_options:
+            print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
+
+        elif 1 in model_options:
+            print(f'\n{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
+
+        elif 5 in model_options:
+            print(f'\n{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
+
 
     if any([option in model_options for option in [4, 7]]):
         print('\nAuthor App Nodes:')
         print(f'\n{AuthorApp.AUTHOR.value} Nodes: {count_author_nodes}')
 
+
     if any([option in model_options for option in [2, 3, 4, 7]]):
         print('\nInstitution App Nodes:')
-        print(f'{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}') if 4 in model_options or 7 in model_options else None
-        print(f'\n{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}') if 2 in model_options or 7 in model_options else None
-        print(f'{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}') if 3 in model_options or 7 in model_options else None
+        if 7 in model_options:
+            print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
+            print(f'{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
+            print(f'{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
+        
+        elif 4 in model_options:
+            print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
+        
+        elif 2 in model_options:
+            print(f'\n{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
+        
+        elif 3 in model_options:
+            print(f'\n{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
