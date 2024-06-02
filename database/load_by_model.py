@@ -258,6 +258,8 @@ if __name__ == '__main__':
 
     database_url, database_name = neomodel_connect(db_option)
 
+    print(f'Database: {database_name}')
+
     config.DATABASE_URL = database_url
     config.DATABASE_NAME = database_name
 

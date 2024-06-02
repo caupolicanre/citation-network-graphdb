@@ -21,6 +21,8 @@ while db_option not in ['Production', 'Test']:
 
 database_url, database_name, auth = neo4j_connect(db_option)
 
+print(f'Database: {database_name}')
+
 driver = GraphDatabase.driver(database_url, auth=auth)
 session = driver.session(database=database_name)
 
