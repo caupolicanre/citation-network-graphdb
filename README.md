@@ -55,7 +55,10 @@ pip install -r requirements.pip
 
 ### Apply Constraints and Relations on DB
 Apply labels in the DataBase.  
-Move to './database/utils/' folder, run `install_labels.bat` and follow the instructions.
+```bash
+cd database/utils
+install_labels.bat
+```
 
 
 ## Useful Links
