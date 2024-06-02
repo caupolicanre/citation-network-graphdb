@@ -72,11 +72,19 @@ pip install -r requirements.pip
 
 
 ### Apply Constraints and Relations into the Database
-Apply labels in the database by running: 
+Apply labels in the database by running and following the instructions in the terminal: 
 ```bash
 cd database/utils
 install_labels.bat
 ```
+
+
+### Load Data into the Database
+Load the data into the database by running and following the instructions in the terminal:
+```bash
+python database/populate_db_batches.py
+```
+
 
 
 ## Useful Links
