@@ -5,6 +5,7 @@ from tqdm import tqdm
 from neomodel import config, db
 
 from database.utils.funcs import detect_encoding
+from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
 from apps.author.models import Author, AuthorOrganizationRel
@@ -108,3 +109,8 @@ if __name__ == '__main__':
             create_author_org_nodes(nodes_batch, database_url, database_name)
 
     print('\nAuthors and Organizations loaded to Graph Database.')
+
+    count_author_nodes = querys.count_nodes('Author', database_url, database_name)
+    count_organization_nodes = querys.count_nodes('Organization', database_url, database_name)
+    print(f'Total Author Nodes: {count_author_nodes}')
+    print(f'Total Organization Nodes: {count_organization_nodes}')

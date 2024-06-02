@@ -5,6 +5,7 @@ from tqdm import tqdm
 from neomodel import config, db
 
 from database.utils.funcs import detect_encoding
+from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
 from apps.paper.models import FieldOfStudy
@@ -93,3 +94,6 @@ if __name__ == '__main__':
             create_fos_nodes(nodes_batch, database_url, database_name)
 
     print('\nFields of Study loaded to Graph Database.')
+
+    count_fos_nodes = querys.count_nodes('FieldOfStudy', database_url, database_name)
+    print(f'Total Field of Study Nodes: {count_fos_nodes}')

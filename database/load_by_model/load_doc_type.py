@@ -5,6 +5,7 @@ from tqdm import tqdm
 from neomodel import config, db
 
 from database.utils.funcs import detect_encoding
+from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
 from apps.paper.models import DocumentType
@@ -87,3 +88,6 @@ if __name__ == '__main__':
             create_document_type_nodes(nodes_batch, database_url, database_name)
 
     print('\nDocument Types loaded to Graph Database.')
+
+    count_doc_type_nodes = querys.count_nodes('DocumentType', database_url, database_name)
+    print(f'Total Document Type Nodes: {count_doc_type_nodes}')
