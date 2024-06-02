@@ -18,6 +18,24 @@ The data set can be used for clustering with network and side information, study
 ## Deployment
 Configuration to deploy this project.
 
+### Setting the Environment
+Create a `.env` file in the project's root folder and add the following variables with the corresponding values:
+```.env
+DB_PROJECT="Citation Network"   # Optional
+DB_URI="localhost:7687"
+
+DB_NAME="citation-network"
+DB_PASS="<db_pass>"
+DB_USER="<db_user>"
+
+TEST_DB_NAME="citation-network-test"
+TEST_DB_PASS="<test_db_pass>"
+TEST_DB_USER="<test_db_user>"
+
+BATCH_SIZE_PAPER_NODES=5000     # Optional. The file will default if not set.
+BATCH_SIZE_REQUIRED_NODES=10000 # Optional. The file will default if not set.
+```
+
 ### Virtual environment
 Open a terminal in the project's root folder and run:
 ```bash
