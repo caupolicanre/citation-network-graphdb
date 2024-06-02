@@ -5,6 +5,7 @@ import pandas as pd
 import neo4j
 from neo4j import GraphDatabase
 
+from core.enums.db_enums import DatabaseType
 from database.utils.db_connection import neo4j_connect
 
 
@@ -83,15 +84,18 @@ if __name__ == '__main__':
     print('=============================')
     print(' Create Indexes for Database')
     print('=============================')
-    print('Choose Database:\n1. Production\n2. Test')
+    print('Choose Database:')
+    print(f'1. {DatabaseType.PRODUCTION.value}')
+    print(f'2. {DatabaseType.TEST.value}')
 
     db_option = None
-    while db_option not in ['Production', 'Test']:
+    while db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
         db_option = input('\nDatabase: ')
 
-        if db_option not in ['Production', 'Test']:
-            print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
+        if db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
+            print(f'Invalid Database. Please choose between \'{DatabaseType.PRODUCTION.value}\' and \'{DatabaseType.TEST.value}\'.')
 
+    db_option = DatabaseType(db_option)
     database_url, database_name, auth = neo4j_connect(db_option)
 
     print(f'Database: {database_name}')
@@ -112,7 +116,7 @@ if __name__ == '__main__':
     ]
 
 
-    print(f'\nCreating indexes for \'{db_option}\' Database...')
+    print(f'\nCreating indexes for \'{db_option.value}\' Database...')
 
     for node in nodes_to_index:
         create_index(node['node_label'], node['field_name'], database_url, database_name, auth)
@@ -124,5 +128,5 @@ if __name__ == '__main__':
 
     if show_indexes.lower() in ['y', 'yes']:
         indexes = get_indexes(database_url, database_name, auth)
-        print(f'\nIndexes in \'{db_option}\' Database:')
+        print(f'\nIndexes in \'{db_option.value}\' Database:')
         print(indexes)

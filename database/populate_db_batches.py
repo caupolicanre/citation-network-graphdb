@@ -10,6 +10,7 @@ import ijson
 from tqdm import tqdm
 
 from core.enums.app_enums import AuthorApp, InstitutionApp, PaperApp
+from core.enums.db_enums import DatabaseType
 from core.funcs import detect_encoding
 
 from database.utils import querys
@@ -119,15 +120,18 @@ if __name__ == '__main__':
     print('==============================')
     print(' Populate Database by Batches')
     print('==============================')
-    print('Choose Database:\n1. Production\n2. Test')
+    print('Choose Database:')
+    print(f'1. {DatabaseType.PRODUCTION.value}')
+    print(f'2. {DatabaseType.TEST.value}')
 
     db_option = None
-    while db_option not in ['Production', 'Test']:
+    while db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
         db_option = input('\nDatabase: ')
 
-        if db_option not in ['Production', 'Test']:
-            print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
+        if db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
+            print(f'Invalid Database. Please choose between \'{DatabaseType.PRODUCTION.value}\' and \'{DatabaseType.TEST.value}\'.')
 
+    db_option = DatabaseType(db_option)
     database_url, database_name = neomodel_connect(db_option)
 
     print(f'Database: {database_name}')

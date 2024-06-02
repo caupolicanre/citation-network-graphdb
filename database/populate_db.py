@@ -5,6 +5,7 @@ from tqdm import tqdm
 from neomodel import config
 
 from core.funcs import detect_encoding
+from core.enums.db_enums import DatabaseType
 from database.utils.db_connection import neomodel_connect
 
 from apps.author.models import Author, AuthorOrganizationRel
@@ -187,15 +188,18 @@ if __name__ == '__main__':
     print('===================')
     print(' Populate Database')
     print('===================')
-    print('Choose Database:\n1. Production\n2. Test')
+    print('Choose Database:')
+    print(f'1. {DatabaseType.PRODUCTION.value}')
+    print(f'2. {DatabaseType.TEST.value}')
 
     db_option = None
-    while db_option not in ['Production', 'Test']:
+    while db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
         db_option = input('\nDatabase: ')
 
-        if db_option not in ['Production', 'Test']:
-            print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
+        if db_option not in [DatabaseType.PRODUCTION.value, DatabaseType.TEST.value]:
+            print(f'Invalid Database. Please choose between \'{DatabaseType.PRODUCTION.value}\' and \'{DatabaseType.TEST.value}\'.')
 
+    db_option = DatabaseType(db_option)
     database_url, database_name = neomodel_connect(db_option)
 
     config.DATABASE_URL = database_url
