@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from neomodel import config, db
 
-from database.utils.funcs import detect_encoding
+from core.funcs import detect_encoding
 from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 

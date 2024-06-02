@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 from neomodel import config
 
-from database.utils.funcs import detect_encoding
+from core.funcs import detect_encoding
 from database.utils.db_connection import neomodel_connect
 
 from apps.author.models import Author, AuthorOrganizationRel
