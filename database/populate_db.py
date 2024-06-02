@@ -1,36 +1,15 @@
-import os
-from os.path import join, dirname
-
 from datetime import datetime
-import dotenv
 import ijson
 from tqdm import tqdm
 
-from neo4j import GraphDatabase
 from neomodel import config
 
 from database.utils.funcs import detect_encoding
+from database.utils.db_connection import neomodel_connect
 
 from apps.author.models import Author, AuthorOrganizationRel
 from apps.institution.models import Organization, Publisher, Venue, VenueType
 from apps.paper.models import Paper, FieldOfStudy, PaperFieldOfStudyRel, DocumentType
-
-
-dotenv_path = join(dirname(__file__), '.env')
-dotenv.load_dotenv(dotenv_path)
-
-URI = os.environ.get('DB_URI')
-DB_NAME = os.environ.get('DB_NAME')
-DB_USER = os.environ.get('DB_USER')
-DB_PASS = os.environ.get('DB_PASS')
-AUTH = (DB_USER, DB_PASS)
-
-config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
-config.DATABASE_NAME = DB_NAME
-
-
-dataset_path = './dataset/dblp.v12.json'
-encoding = detect_encoding(dataset_path)
 
 
 
@@ -199,12 +178,37 @@ def create_nodes(obj: dict):
 
 
 
-print('\nStarting to populate the Graph Database')
 
-with open(dataset_path, 'r', encoding=encoding) as f:
-    objects = ijson.items(f, 'item')
+if __name__ == '__main__':
+    dataset_path = './dataset/dblp.v12.json'
+    encoding = detect_encoding(dataset_path)
 
-    for obj in tqdm(objects, desc='Creating nodes', unit=' papers'):
-        create_nodes(obj)
 
-print('\nGraph Database loaded successfully')
+    print('===================')
+    print(' Populate Database')
+    print('===================')
+    print('Choose Database:\n1. Production\n2. Test')
+
+    db_option = None
+    while db_option not in ['Production', 'Test']:
+        db_option = input('\nDatabase: ')
+
+        if db_option not in ['Production', 'Test']:
+            print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
+
+    database_url, database_name = neomodel_connect(db_option)
+
+    config.DATABASE_URL = database_url
+    config.DATABASE_NAME = database_name
+
+
+
+    print('\nStarting to populate the Graph Database')
+
+    with open(dataset_path, 'r', encoding=encoding) as f:
+        objects = ijson.items(f, 'item')
+
+        for obj in tqdm(objects, desc='Creating nodes', unit=' papers'):
+            create_nodes(obj)
+
+    print('\nGraph Database loaded successfully')
