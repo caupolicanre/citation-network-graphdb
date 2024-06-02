@@ -1,17 +1,7 @@
-import os
-from os.path import join, dirname
-
-import dotenv
 import gc
 from datetime import datetime
-import ijson
-from tqdm import tqdm
 
 from neomodel import config, db
-
-from core.funcs import detect_encoding
-from database.utils import querys
-from database.utils.db_connection import neomodel_connect
 
 from apps.author.models import Author, AuthorOrganizationRel
 from apps.institution.models import Organization, Publisher, Venue, VenueType
@@ -227,240 +217,166 @@ def create_fos_nodes(nodes: list, database_url: str, database_name: str) -> None
     gc.collect()
 
 
+def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> None:
+    '''
+    Create nodes for each paper in the dataset with neomodel.
+    Using the Paper model.
+    The relationships are created with the following models, so they need to be created before this function is called:
+        - DocumentType
+        - Publisher
+        - Venue
+        - Author
+        - Organization
+        - FieldOfStudy
+    
+    Parameters
+    ----------
+    nodes : list
+        A list of dictionaries containing the papers information.
+        Required fields:
+            - id: int (required)
+                Paper ID.
+            - title: str (required)
+                Paper title.
+            - authors: list (required at least one author)
+                List of authors.
+                - name: str (required)
+                    Author name.
+        Optional fields:
+            - doi: str
+                DOI of the paper.
+            - year: int
+                Year of the paper.
+            - page_start: int
+                Page start of the paper.
+            - page_end: int
+                Page end of the paper.
+            - volume: int
+                Volume of the paper.
+            - issue: int
+                Issue of the paper.
+            - n_citation: int
+                Number of citations of the paper.
+            - doc_type: str
+                Document type of the paper.
+            - publisher: str
+                Publisher of the paper.
+            - venue: dict
+                Venue of the paper.
+                - raw: str (required)
+                    Venue name.
+            - fos: list
+                List of field of study.
+                - name: str (required)
+                    Field of study name.
+                - w: float (optional)
+                    Weight of the field of study. Default is 0.0.
+            - references: list
+                List of paper IDs that the paper references.
 
-
-if __name__ == '__main__':
-    dotenv_path = join(dirname(__file__), '.env')
-    dotenv.load_dotenv(dotenv_path)
-
-    dataset_path = './dataset/dblp.v12.json'
-    encoding = detect_encoding(dataset_path)
-
-    BATCH_SIZE_PAPER_NODES = int(os.environ.get('BATCH_SIZE_PAPER_NODES', 5000))
-    paper_nodes_batch = []
-
-    BATCH_SIZE_REQUIRED_NODES = int(os.environ.get('BATCH_SIZE_REQUIRED_NODES', 10000))
-    required_nodes_batch = []
-
-
-
-    print('=======================')
-    print(' Load Model by Batches')
-    print('=======================')
-    print('Choose Database:\n1. Production\n2. Test')
-
-    db_option = None
-    while db_option not in ['Production', 'Test']:
-        db_option = input('\nDatabase: ')
-
-        if db_option not in ['Production', 'Test']:
-            print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
-
-    database_url, database_name = neomodel_connect(db_option)
-
-    print(f'Database: {database_name}')
-
+    database_url : str (required)
+        URL of the database.
+    database_name : str (required)
+        Name of the database.
+    '''
     config.DATABASE_URL = database_url
     config.DATABASE_NAME = database_name
 
+    with db.transaction:
+        for obj in nodes:
+            paper_id = int(obj['id'])
+            title = obj['title']
+            doi = obj.get('doi', None)
+            year = obj.get('year', None)
+            page_start = obj.get('page_start', None)
+            page_end = obj.get('page_end', None)
+            volume = obj.get('volume', None)
+            issue = obj.get('issue', None)
+            n_citation = obj.get('n_citation', 0)
 
-    print('\n===================')
-    print(' Create Model nodes')
-    print('====================')
-    print('Select the model nodes to create:')
-    print('1. Document Type')
-    print('2. Publisher')
-    print('3. Venue')
-    print('4. Author and Organization')
-    print('5. Field of Study')
-    print('6. Papers')
-
-    model_option = input('\nModel (select by number, just one model): ')
-
-    while model_option not in ['1', '2', '3', '4', '5', '6'] \
-          or len(model_option) != 1:
-        print('Invalid input. Please select the Model to create nodes.')
-        model_option = input('Model (select by number, just one model): ')
-
-    model_option = int(model_option)
-
-    if model_option == 1:
-        create_nodes = 'y'
-
-        count_doc_type_nodes = querys.count_nodes('DocumentType', database_url, database_name)
-        if count_doc_type_nodes > 0:
-            print(f'\nDocument Type has {count_doc_type_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input('Do you still want to create Document Type nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-
-            print('\nCreating Document Type nodes')
-
-            with open(dataset_path, 'r', encoding=encoding) as f:
-                objects = ijson.items(f, 'item')
-
-                for obj in tqdm(objects, desc='Creating Document Type nodes', unit=' papers'):
-                    required_nodes_batch.append(obj)
-
-                    if len(required_nodes_batch) >= BATCH_SIZE_REQUIRED_NODES:
-                        create_document_type_nodes(required_nodes_batch, database_url, database_name)
-                        required_nodes_batch = []
-
-                if required_nodes_batch:
-                    create_document_type_nodes(required_nodes_batch, database_url, database_name)
-
-            required_nodes_batch = []
-            print('\nDocument Types loaded to Graph Database.')
-
-            count_doc_type_nodes = querys.count_nodes('DocumentType', database_url, database_name)
-            print(f'Total Document Type Nodes: {count_doc_type_nodes}')
+            doc_type = obj.get('doc_type', None)
+            publisher = obj.get('publisher', None)
+            venue = obj.get('venue', None)
+            authors = obj.get('authors', []) # List of Dict
+            fields_of_study = obj.get('fos', []) # List of Dict
+            references = obj.get('references', []) # List of Int
 
 
-    if model_option == 2:
-        create_nodes = 'y'
-
-        count_publisher_nodes = querys.count_nodes('Publisher', database_url, database_name)
-        if count_publisher_nodes > 0:
-            print(f'\nPublisher has {count_publisher_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input('Do you still want to create Publisher nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-
-            print('\nCreating Publisher nodes')
-
-            with open(dataset_path, 'r', encoding=encoding) as f:
-                objects = ijson.items(f, 'item')
-
-                for obj in tqdm(objects, desc='Creating Publisher nodes', unit=' papers'):
-                    required_nodes_batch.append(obj)
-
-                    if len(required_nodes_batch) >= BATCH_SIZE_REQUIRED_NODES:
-                        create_publisher_nodes(required_nodes_batch, database_url, database_name)
-                        required_nodes_batch = []
-
-                if required_nodes_batch:
-                    create_publisher_nodes(required_nodes_batch, database_url, database_name)
-
-            required_nodes_batch = []
-            print('\nPublishers loaded to Graph Database.')
-
-            count_publisher_nodes = querys.count_nodes('Publisher', database_url, database_name)
-            print(f'Total Publisher Nodes: {count_publisher_nodes}')
+            # Clean up paper data
+            if doi == '':
+                doi = None
+            if year:
+                year = datetime.strptime(str(year), '%Y')
+            if page_start:
+                page_start = int(''.join(filter(str.isdigit, page_start)))
+            if page_end:
+                page_end = int(''.join(filter(str.isdigit, page_end)))
+            if volume:
+                volume = int(''.join(filter(str.isdigit, volume)))
+            if issue:
+                issue = int(''.join(filter(str.isdigit, issue)))
 
 
-    if model_option == 3:
-        create_nodes = 'y'
+            paper_node = Paper.nodes.get_or_none(title=title)
 
-        count_venue_nodes = querys.count_nodes('Venue', database_url, database_name)
-        if count_venue_nodes > 0:
-            print(f'\nVenue has {count_venue_nodes} nodes created.')
+            if not paper_node:
 
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input('Do you still want to create Venue nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-
-            print('\nCreating Venue nodes')
-
-            with open(dataset_path, 'r', encoding=encoding) as f:
-                objects = ijson.items(f, 'item')
-
-                for obj in tqdm(objects, desc='Creating Venue nodes', unit=' papers'):
-                    required_nodes_batch.append(obj)
-
-                    if len(required_nodes_batch) >= BATCH_SIZE_REQUIRED_NODES:
-                        create_venue_nodes(required_nodes_batch, database_url, database_name)
-                        required_nodes_batch = []
-
-                if required_nodes_batch:
-                    create_venue_nodes(required_nodes_batch, database_url, database_name)
-
-            required_nodes_batch = []
-            print('\nVenues loaded to Graph Database.')
-
-            count_venue_nodes = querys.count_nodes('Venue', database_url, database_name)
-            print(f'Total Venue Nodes: {count_venue_nodes}')
+                paper = Paper(
+                    paper_id=paper_id,
+                    title=title,
+                    doi=doi,
+                    year=year,
+                    page_start=page_start,
+                    page_end=page_end,
+                    volume=volume,
+                    issue=issue,
+                    n_citation=n_citation
+                ).save()
 
 
-    if model_option == 4:
-        create_nodes = 'y'
+                if doc_type:
+                    doc_type_node = DocumentType.nodes.get(type=doc_type)
 
-        count_author_nodes = querys.count_nodes('Author', database_url, database_name)
-        count_org_nodes = querys.count_nodes('Organization', database_url, database_name)
-        if count_author_nodes > 0 or count_org_nodes > 0:
-            print(f'\nAuthor has {count_author_nodes} nodes and Organization has {count_org_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input('Do you still want to create Author and Organization nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-
-            print('\nCreating Author and Organization nodes')
-
-            with open(dataset_path, 'r', encoding=encoding) as f:
-                objects = ijson.items(f, 'item')
-
-                for obj in tqdm(objects, desc='Creating Author and Org nodes', unit=' papers'):
-                    required_nodes_batch.append(obj)
-
-                    if len(required_nodes_batch) >= BATCH_SIZE_REQUIRED_NODES:
-                        create_author_org_nodes(required_nodes_batch, database_url, database_name)
-                        required_nodes_batch = []
-
-                if required_nodes_batch:
-                    create_author_org_nodes(required_nodes_batch, database_url, database_name)
-
-            required_nodes_batch = []
-            print('\nAuthors and Organizations loaded to Graph Database.')
-
-            count_author_nodes = querys.count_nodes('Author', database_url, database_name)
-            count_organization_nodes = querys.count_nodes('Organization', database_url, database_name)
-            print(f'Total Author Nodes: {count_author_nodes}')
-            print(f'Total Organization Nodes: {count_organization_nodes}')
+                    if not paper.type.is_connected(doc_type_node):
+                        paper.type.connect(doc_type_node)
 
 
-    if model_option == 5:
-        create_nodes = 'y'
+                if publisher:
+                    publisher_node = Publisher.nodes.get(name=publisher)
+                    
+                    if not paper.publisher.is_connected(publisher_node):
+                        paper.publisher.connect(publisher_node)
+                
 
-        count_fos_nodes = querys.count_nodes('FieldOfStudy', database_url, database_name)
-        if count_fos_nodes > 0:
-            print(f'\nField of Study has {count_fos_nodes} nodes created.')
+                if venue:
+                    venue_node = Venue.nodes.get(name=venue['raw'])
 
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input('Do you still want to create Field of Study nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
+                    if not paper.venue.is_connected(venue_node):
+                        paper.venue.connect(venue_node)
 
-            print('\nCreating Field of Study nodes')
 
-            with open(dataset_path, 'r', encoding=encoding) as f:
-                objects = ijson.items(f, 'item')
+                for author in authors:
+                    author_name = author.get('name', None)
 
-                for obj in tqdm(objects, desc='Creating FOS nodes', unit=' papers'):
-                    required_nodes_batch.append(obj)
+                    author_node = Author.nodes.get(name=author_name)
+                    
+                    if not paper.author.is_connected(author_node):
+                        paper.author.connect(author_node)
 
-                    if len(required_nodes_batch) >= BATCH_SIZE_REQUIRED_NODES:
-                        create_fos_nodes(required_nodes_batch, database_url, database_name)
-                        required_nodes_batch = []
 
-                if required_nodes_batch:
-                    create_fos_nodes(required_nodes_batch, database_url, database_name)
+                for fos in fields_of_study:
+                    fos_name = fos.get('name', None)
+                    fos_weight = fos.get('w', 0.0)
 
-            required_nodes_batch = []
-            print('\nFields of Study loaded to Graph Database.')
+                    fos_node = FieldOfStudy.nodes.get(name=fos_name)
+                    
+                    if not paper.field_of_study.is_connected(fos_node):
+                        paper.field_of_study.connect(fos_node, {'weight': fos_weight})
 
-            count_fos_nodes = querys.count_nodes('FieldOfStudy', database_url, database_name)
-            print(f'Total Field of Study Nodes: {count_fos_nodes}')
-    
 
-    if model_option == 6:
-        pass
+                for ref_id in references:
+                    ref_paper = Paper.nodes.get_or_none(paper_id=ref_id)
+                    if ref_paper:
+                        paper.reference.connect(ref_paper)
+
+    gc.collect()
