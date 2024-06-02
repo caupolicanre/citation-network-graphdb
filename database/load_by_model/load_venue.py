@@ -93,7 +93,7 @@ if __name__ == '__main__':
     with open(dataset_path, 'r', encoding=encoding) as f:
         objects = ijson.items(f, 'item')
 
-        for obj in tqdm(objects, desc='Creating nodes', unit=' papers'):
+        for obj in tqdm(objects, desc='Creating Venue nodes', unit=' papers'):
             nodes_batch.append(obj)
 
             if len(nodes_batch) >= BATCH_SIZE:
