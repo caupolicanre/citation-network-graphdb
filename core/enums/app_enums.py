@@ -1,7 +1,6 @@
 from enum import Enum
 
 
-
 class AuthorApp(Enum):
     AUTHOR = 'Author'
     AUTHOR_ORG_REL = 'AuthorOrganizationRel'

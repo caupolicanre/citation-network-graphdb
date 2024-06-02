@@ -9,7 +9,7 @@ import dotenv
 import ijson
 from tqdm import tqdm
 
-from core.app_enums import AuthorApp, InstitutionApp, PaperApp
+from core.enums.app_enums import AuthorApp, InstitutionApp, PaperApp
 from core.funcs import detect_encoding
 
 from database.utils import querys

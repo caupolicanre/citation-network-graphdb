@@ -1,7 +1,7 @@
 from typing import Union, Optional
 from neomodel import config, db
 
-from core.app_enums import AuthorApp, InstitutionApp, PaperApp
+from core.enums.app_enums import AuthorApp, InstitutionApp, PaperApp
 
 
 def count_nodes(database_url: str, database_name: str,
