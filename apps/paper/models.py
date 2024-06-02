@@ -49,8 +49,8 @@ class Paper(StructuredNode):
     publisher = RelationshipTo('apps.institution.models.Publisher', 'PUBLISHED_BY', cardinality=One)
     venue = RelationshipTo('apps.institution.models.Venue', 'PRESENTED_AT', cardinality=ZeroOrOne)
     author = RelationshipTo('apps.author.models.Author', 'AUTHORED_BY', cardinality=OneOrMore)
-    field_of_study = Relationship('FieldOfStudy', 'RELATED_TO', cardinality=ZeroOrMore, model=PaperFieldOfStudyRel)
-    reference = Relationship('Paper', 'CITES', cardinality=ZeroOrMore)
+    field_of_study = RelationshipTo('FieldOfStudy', 'RELATED_TO', cardinality=ZeroOrMore, model=PaperFieldOfStudyRel)
+    reference = RelationshipTo('Paper', 'CITES', cardinality=ZeroOrMore)
 
     def __str__(self):
         return self.title
