@@ -24,9 +24,9 @@ def create_venue_nodes(nodes: list, database_url: str, database_name: str) -> No
             - venue: dict (required)
                 Venue information.
                 Required fields:
-                    - raw: string (required)
+                    - raw: str (required)
                         Venue name.
-                    - type: string (optional)
+                    - type: str (optional)
                         Venue type.
     database_url : str
         URL of the database.

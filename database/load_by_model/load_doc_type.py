@@ -21,7 +21,7 @@ def create_document_type_nodes(nodes: list, database_url: str, database_name: st
     nodes : list
         A list of dictionaries containing the document type's information.
         Required fields:
-            - doc_type: string (required)
+            - doc_type: str (required)
                 Document type.
     database_url : str
         URL of the database.

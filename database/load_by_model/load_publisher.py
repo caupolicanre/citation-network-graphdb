@@ -21,7 +21,7 @@ def create_publisher_nodes(nodes: list, database_url: str, database_name: str) -
     nodes : list
         A list of dictionaries containing the publisher's information.
         Required fields:
-            - publisher: string (required)
+            - publisher: str (required)
                 Publisher name.
     database_url : str
         URL of the database.
