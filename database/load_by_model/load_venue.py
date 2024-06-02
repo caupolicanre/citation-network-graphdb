@@ -49,14 +49,14 @@ def create_venue_nodes(nodes: list, database_url: str, database_name: str) -> No
                 if not venue_node:
                     venue_node = Venue(name=venue_name).save()
 
-                if venue_type:
-                    venue_type_node = VenueType.nodes.get_or_none(type=venue_type)
+                    if venue_type:
+                        venue_type_node = VenueType.nodes.get_or_none(type=venue_type)
 
-                    if not venue_type_node:
-                        venue_type_node = VenueType(type=venue_type).save()
+                        if not venue_type_node:
+                            venue_type_node = VenueType(type=venue_type).save()
 
-                    if not venue_node.type.is_connected(venue_type_node):
-                        venue_node.type.connect(venue_type_node)
+                        if not venue_node.type.is_connected(venue_type_node):
+                            venue_node.type.connect(venue_type_node)
 
     gc.collect()
 
