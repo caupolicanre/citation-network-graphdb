@@ -1,58 +1,28 @@
-import os
-from os.path import join, dirname
-
-import dotenv
-import time
-
 import pandas as pd
 
 import neo4j
 from neo4j import GraphDatabase
 
+from database.utils.db_connection import neo4j_connect
 
-dotenv_path = join(dirname(__file__), '.env')
-dotenv.load_dotenv(dotenv_path)
 
 
 print('=============================')
-print('Create Indexes for Database')
+print(' Create Indexes for Database')
 print('=============================')
 print('Choose Database:\n1. Production\n2. Test')
 
-db = None
-while db not in ['Production', 'Test']:
-    db = input('\nDatabase: ')
+db_option = None
+while db_option not in ['Production', 'Test']:
+    db_option = input('\nDatabase: ')
 
-    if db not in ['Production', 'Test']:
+    if db_option not in ['Production', 'Test']:
         print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
 
-TEST = True if db == 'Test' else False
+database_url, database_name, auth = neo4j_connect(db_option)
 
-URI = os.environ.get('DB_URI')
-
-if TEST:
-    print('\nDatabase selected: Test')
-    TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
-    TEST_DB_USER = os.environ.get('TEST_DB_USER')
-    TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
-    AUTH = (TEST_DB_USER, TEST_DB_PASS)
-
-    DB_URL = f'bolt://{URI}/{TEST_DB_NAME}'
-
-    driver = GraphDatabase.driver(DB_URL, auth=AUTH)
-    session = driver.session(database=TEST_DB_NAME)
-
-else:
-    print('\nDatabase selected: Production')
-    DB_NAME = os.environ.get('DB_NAME')
-    DB_USER = os.environ.get('DB_USER')
-    DB_PASS = os.environ.get('DB_PASS')
-    AUTH = (DB_USER, DB_PASS)
-
-    DB_URL = f'bolt://{URI}/{DB_NAME}'
-
-    driver = GraphDatabase.driver(DB_URL, auth=AUTH)
-    session = driver.session(database=DB_NAME)
+driver = GraphDatabase.driver(database_url, auth=auth)
+session = driver.session(database=database_name)
 
 
 
@@ -95,7 +65,7 @@ nodes_to_index = [
 ]
 
 
-print('\nCreating indexes for the database...')
+print(f'\nCreating indexes for \'{db_option}\' Database...')
 
 for node in nodes_to_index:
     create_index(node['node_label'], node['field_name'])
@@ -103,10 +73,12 @@ for node in nodes_to_index:
 print('\nIndexes created successfully.')
 
 
-indexes = get_indexes()
+show_indexes = input('\nShow indexes? (y/n): ')
 
-print('\nIndexes in the database:')
-print(indexes)
+if show_indexes.lower() in ['y', 'yes']:
+    indexes = get_indexes()
+    print(f'\nIndexes in \'{db_option}\' Database:')
+    print(indexes)
 
 
 session.close()

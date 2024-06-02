@@ -1,22 +1,15 @@
-import os
-from os.path import join, dirname
 import gc
-
-import time
-import dotenv
 import ijson
 from tqdm import tqdm
 
 from neomodel import config, db
 
 from database.utils.funcs import detect_encoding
+from database.utils.db_connection import neomodel_connect
 
 from apps.paper.models import DocumentType
 
 
-
-dotenv_path = join(dirname(__file__), '.env')
-dotenv.load_dotenv(dotenv_path)
 
 dataset_path = './dataset/dblp.v12.json'
 encoding = detect_encoding(dataset_path)
@@ -38,27 +31,10 @@ while db_option not in ['Production', 'Test']:
     if db_option not in ['Production', 'Test']:
         print('Invalid Database. Please choose between \'Production\' and \'Test\'.')
 
-TEST = True if db_option == 'Test' else False
+database_url, database_name = neomodel_connect(db_option)
 
-URI = os.environ.get('DB_URI')
-
-if TEST:
-    TEST_DB_NAME = os.environ.get('TEST_DB_NAME')
-    TEST_DB_USER = os.environ.get('TEST_DB_USER')
-    TEST_DB_PASS = os.environ.get('TEST_DB_PASS')
-    AUTH = (TEST_DB_USER, TEST_DB_PASS)
-
-    config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
-    config.DATABASE_NAME = TEST_DB_NAME
-
-else:
-    DB_NAME = os.environ.get('DB_NAME')
-    DB_USER = os.environ.get('DB_USER')
-    DB_PASS = os.environ.get('DB_PASS')
-    AUTH = (DB_USER, DB_PASS)
-
-    config.DATABASE_URL = f'bolt://{AUTH[0]}:{AUTH[1]}@{URI}'
-    config.DATABASE_NAME = DB_NAME
+config.DATABASE_URL = database_url
+config.DATABASE_NAME = database_name
 
 
 
@@ -74,7 +50,6 @@ def create_nodes_batch(nodes):
                 if not doc_type_node:
                     doc_type_node = DocumentType(type=doc_type).save()
 
-    time.sleep(0.1) # Sleep to free up resources
     gc.collect()  # Garbage collection to free up memory
 
 
