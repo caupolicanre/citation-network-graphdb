@@ -28,6 +28,14 @@ Create a new database in Neo4j Desktop and set the following configurations:
 - **Port**: 7687
 - **URI**: localhost
 
+Open the database configuration and configure the following settings.  
+For this project, with a PC with 16GB of RAM, I used the following settings:
+```properties
+server.memory.heap.initial_size=8g
+server.memory.heap.max_size=8g
+server.memory.pagecache.size=6g
+```
+
 
 ### Download the Dataset
 Download the dataset from [Kaggle](https://www.kaggle.com/datasets/mathurinache/citation-network-dataset) and extract 'dblp.v12.json' in `./dataset` folder.
@@ -47,8 +55,9 @@ TEST_DB_NAME="citation-network-test"
 TEST_DB_PASS="<test_db_pass>"
 TEST_DB_USER="<test_db_user>"
 
-BATCH_SIZE_PAPER_NODES=5000     # Optional. The file will default if not set.
-BATCH_SIZE_REQUIRED_NODES=10000 # Optional. The file will default if not set.
+# Optional. If not set, the default values are used.
+BATCH_SIZE_PAPER_NODES=5000
+BATCH_SIZE_REQUIRED_NODES=10000
 ```
 
 
