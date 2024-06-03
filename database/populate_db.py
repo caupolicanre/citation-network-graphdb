@@ -100,10 +100,10 @@ def create_nodes(obj: dict):
             title=title,
             doi=doi if (doi is not None and doi != '') else None,
             year=year,
-            page_start=page_start,
-            page_end=page_end,
-            volume=volume,
-            issue=issue,
+            page_start=int(page_start) if page_start else None,
+            page_end=int(page_end) if page_end else None,
+            volume=int(volume) if volume else None,
+            issue=int(issue) if issue else None,
             n_citation=n_citation
         ).save()
 
@@ -127,16 +127,10 @@ def create_nodes(obj: dict):
 
 
         for author_data in authors:
-            author_id = int(author_data['id'])
-            author_node = Author.nodes.get_or_none(author_id=author_id)
+            author_node = Author.nodes.get_or_none(name=author_data['name'])
 
-            # If not found by author_id, try to find by name
             if not author_node:
-                author_node = Author.nodes.get_or_none(name=author_data['name'])
-
-            # If not found at all, create a new node
-            if not author_node:
-                author_node = Author(author_id=author_id, name=author_data['name']).save()
+                author_node = Author(name=author_data['name']).save()
             
             if not paper.author.is_connected(author_node):
                 paper.author.connect(author_node)
