@@ -137,13 +137,10 @@ def create_author_org_nodes(nodes: list, database_url: str, database_name: str) 
         Required fields:
             - authors: list (required)
                 List of authors.
-                Required fields:
-                    - id: int (optional)
-                        Author ID.
-                    - name: str (required)
-                        Author name.
-                    - org: str
-                        Organization name.
+                - name: str (required)
+                    Author name.
+                - org: str
+                    Organization name.
     database_url : str
         URL of the database.
     database_name : str
@@ -157,17 +154,13 @@ def create_author_org_nodes(nodes: list, database_url: str, database_name: str) 
             authors = obj.get('authors', [])
 
             for author in authors:
-                author_id = author.get('id', None)
                 author_name = author.get('name', None)
                 org_name = author.get('org', None)
 
-                author_node = Author.nodes.get_or_none(author_id=author_id)
+                author_node = Author.nodes.get_or_none(name=author_name)
 
                 if not author_node:
-                    author_node = Author.nodes.get_or_none(name=author_name)
-
-                if not author_node:
-                    author_node = Author(author_id=author_id, name=author_name).save()
+                    author_node = Author(name=author_name).save()
 
                 if org_name:
                     organization_node = Organization.nodes.get_or_none(name=org_name)
@@ -311,13 +304,13 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
             if year:
                 year = datetime.strptime(str(year), '%Y')
             if page_start:
-                page_start = int(''.join(filter(str.isdigit, page_start)))
+                page_start = int(page_start) if page_start.isdigit() else None
             if page_end:
-                page_end = int(''.join(filter(str.isdigit, page_end)))
+                page_end = int(page_end) if page_end.isdigit() else None
             if volume:
-                volume = int(''.join(filter(str.isdigit, volume)))
+                volume = int(volume) if volume.isdigit() else None
             if issue:
-                issue = int(''.join(filter(str.isdigit, issue)))
+                issue = int(issue) if issue.isdigit() else None
 
 
             paper_node = Paper.nodes.get_or_none(title=title)
@@ -329,10 +322,10 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                     title=title,
                     doi=doi,
                     year=year,
-                    page_start=page_start,
-                    page_end=page_end,
-                    volume=volume,
-                    issue=issue,
+                    page_start=int(page_start) if page_start else None,
+                    page_end=int(page_end) if page_end else None,
+                    volume=int(volume) if volume else None,
+                    issue=int(issue) if issue else None,
                     n_citation=n_citation
                 ).save()
 
