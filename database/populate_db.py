@@ -1,3 +1,7 @@
+import os
+from os.path import join, dirname
+
+import dotenv
 from datetime import datetime
 import ijson
 from tqdm import tqdm
@@ -181,7 +185,10 @@ def create_nodes(obj: dict):
 
 
 if __name__ == '__main__':
-    dataset_path = './dataset/dblp.v12.json'
+    dotenv_path = join(dirname(__file__), '.env')
+    dotenv.load_dotenv(dotenv_path)
+
+    dataset_path = os.environ.get('DATASET_PATH')
     encoding = detect_encoding(dataset_path)
 
 

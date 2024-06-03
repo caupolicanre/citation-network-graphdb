@@ -106,7 +106,7 @@ if __name__ == '__main__':
     dotenv_path = join(dirname(__file__), '.env')
     dotenv.load_dotenv(dotenv_path)
 
-    dataset_path = './dataset/dblp.v12.json'
+    dataset_path = os.environ.get('DATASET_PATH')
     dataset_encoding = detect_encoding(dataset_path)
 
     BATCH_SIZE_PAPER_NODES = int(os.environ.get('BATCH_SIZE_PAPER_NODES', 5000))

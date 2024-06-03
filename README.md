@@ -55,6 +55,8 @@ TEST_DB_NAME="citation-network-test"
 TEST_DB_PASS="<test_db_pass>"
 TEST_DB_USER="<test_db_user>"
 
+DATASET_PATH="./dataset/dblp.v12.json" # If you downloaded a different version, update the file name.
+
 # Optional. If not set, the default values are used.
 BATCH_SIZE_PAPER_NODES=5000
 BATCH_SIZE_REQUIRED_NODES=10000
