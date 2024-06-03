@@ -68,7 +68,7 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
                     create_fos_nodes(batch, database_url, database_name)
 
                 elif model == PaperApp.PAPER:
-                    create_paper_nodes(batch)
+                    create_paper_nodes(batch, database_url, database_name)
 
                 batch = []
 
@@ -89,7 +89,7 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
                 create_fos_nodes(batch, database_url, database_name)
 
             elif model == PaperApp.PAPER:
-                create_paper_nodes(batch)
+                create_paper_nodes(batch, database_url, database_name)
 
     print(f'\n{model.value} nodes loaded to {database_name} database.')
 
@@ -291,7 +291,7 @@ if __name__ == '__main__':
     print(f'Database: {database_name}')
     print(f'Time Elapsed: {time_elapsed_hours:.0f} hours {time_elapsed % 3600:.0f} minutes')
     print(f'Total Nodes in Database: {querys.count_nodes(database_url, database_name)}')
-    print(f'Total Relationships in Database: {querys.count_relationships(database_url, database_name)}')
+    # print(f'Total Relationships in Database: {querys.count_relationships(database_url, database_name)}')
 
     if any([option in model_options for option in [1, 5, 6, 7]]):
         print('\nPaper App Nodes:')
