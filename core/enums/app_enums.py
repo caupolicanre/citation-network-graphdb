@@ -19,3 +19,4 @@ class PaperApp(Enum):
     DOCUMENT_TYPE = 'DocumentType'
     FIELD_OF_STUDY = 'FieldOfStudy'
     PAPER_FOS_REL = 'PaperFieldOfStudyRel'
+    PAPER_CITES_REL = 'PaperCitesRel'

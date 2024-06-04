@@ -369,10 +369,47 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                     if not paper.field_of_study.is_connected(fos_node):
                         paper.field_of_study.connect(fos_node, {'weight': fos_weight})
 
+    gc.collect()
 
-                for ref_id in references:
-                    ref_paper = Paper.nodes.get_or_none(paper_id=ref_id)
-                    if ref_paper:
-                        paper.reference.connect(ref_paper)
+
+def create_paper_references(nodes: list, database_url: str, database_name: str) -> None:
+    '''
+    Create relationships for each paper that references another paper in the dataset with neomodel.
+    Using the Paper model.
+
+    Parameters
+    ----------
+    nodes : list
+        A list of dictionaries containing the papers information.
+        Required fields:
+            - id: int (required)
+                Paper ID.
+            - title: str (required)
+                Paper title.
+            - references: list (required)
+                List of paper IDs that the paper references.
+    database_url : str (required)
+        URL of the database.
+    database_name : str (required)
+        Name of the database.
+    '''
+    config.DATABASE_URL = database_url
+    config.DATABASE_NAME = database_name
+
+    with db.transaction:
+        for obj in nodes:
+            paper_id = int(obj['id'])
+            paper_title = obj['title']
+            references = obj.get('references', [])
+
+            paper_node = Paper.nodes.get(paper_id=paper_id, title=paper_title)
+
+            for ref_id in references:
+                ref_id = int(ref_id)
+                ref_paper_node = Paper.nodes.get_or_none(paper_id=ref_id)
+
+                if ref_paper_node:
+                    if not paper_node.reference.is_connected(ref_paper_node):
+                        paper_node.reference.connect(ref_paper_node)
 
     gc.collect()

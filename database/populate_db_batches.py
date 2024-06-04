@@ -16,7 +16,7 @@ from core.funcs import detect_encoding
 from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
-from database.load_by_model import create_document_type_nodes, create_publisher_nodes, create_venue_nodes, create_author_org_nodes, create_fos_nodes, create_paper_nodes
+from database.load_by_model import create_document_type_nodes, create_publisher_nodes, create_venue_nodes, create_author_org_nodes, create_fos_nodes, create_paper_nodes, create_paper_references
 
 
 
@@ -69,6 +69,9 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
 
                 elif model == PaperApp.PAPER:
                     create_paper_nodes(batch, database_url, database_name)
+                
+                elif model == PaperApp.PAPER_CITES_REL:
+                    create_paper_references(batch, database_url, database_name)
 
                 batch = []
 
@@ -90,6 +93,9 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
 
             elif model == PaperApp.PAPER:
                 create_paper_nodes(batch, database_url, database_name)
+            
+            elif model == PaperApp.PAPER_CITES_REL:
+                create_paper_references(batch, database_url, database_name)
 
     print(f'\n{model.value} nodes loaded to {database_name} database.')
 
@@ -106,7 +112,7 @@ if __name__ == '__main__':
     dotenv_path = join(dirname(__file__), '.env')
     dotenv.load_dotenv(dotenv_path)
 
-    dataset_path = os.environ.get('DATASET_PATH')
+    dataset_path = os.environ.get('DATASET_PATH', './dataset/dblp.v12.json')
     dataset_encoding = detect_encoding(dataset_path)
 
     BATCH_SIZE_PAPER_NODES = int(os.environ.get('BATCH_SIZE_PAPER_NODES', 5000))
@@ -148,20 +154,18 @@ if __name__ == '__main__':
     print(f'4. {AuthorApp.AUTHOR.value} and {InstitutionApp.ORGANIZATION.value}')
     print(f'5. {PaperApp.FIELD_OF_STUDY.value}')
     print(f'6. {PaperApp.PAPER.value} (It is required to create the previous nodes first)')
-    print('7. All')
+    print(f'7. {PaperApp.PAPER_CITES_REL.value} (It is required to have {PaperApp.PAPER.value} nodes created first)')
+    print('8. All')
 
     model_options = input('\nModels (select by number, separated by comma. Ex: 1,2,3):\n')
     model_options = model_options.split(',')
 
-    while not all([opt in ['1', '2', '3', '4', '5', '6', '7'] for opt in model_options]) \
+    while not all([opt in ['1', '2', '3', '4', '5', '6', '7', '8'] for opt in model_options]) \
           or len(model_options) == 0 \
-          or ('7' in model_options and len(model_options) > 1):
+          or ('8' in model_options and len(model_options) > 1):
         print('Invalid input. Please select the model nodes to create.')
         model_options = input('\nModels (select by number, separated by comma. Ex: 1,2,3):\n')
         model_options = model_options.split(',')
-
-        if 6 in model_options:
-            pass
 
     model_options = [int(opt) for opt in model_options]
 
@@ -169,7 +173,7 @@ if __name__ == '__main__':
     time_start = time.time()
 
 
-    if 1 in model_options or 7 in model_options:
+    if 1 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_doc_type_nodes = querys.count_nodes(database_url, database_name, PaperApp.DOCUMENT_TYPE)
@@ -187,7 +191,7 @@ if __name__ == '__main__':
             print(f'Total {PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
 
 
-    if 2 in model_options or 7 in model_options:
+    if 2 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_publisher_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)
@@ -205,7 +209,7 @@ if __name__ == '__main__':
             print(f'Total {InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
 
 
-    if 3 in model_options or 7 in model_options:
+    if 3 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_venue_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)
@@ -223,7 +227,7 @@ if __name__ == '__main__':
             print(f'Total {InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
 
 
-    if 4 in model_options or 7 in model_options:
+    if 4 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_author_nodes = querys.count_nodes(database_url, database_name, AuthorApp.AUTHOR)
@@ -244,7 +248,7 @@ if __name__ == '__main__':
             print(f'Total {InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
 
 
-    if 5 in model_options or 7 in model_options:
+    if 5 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_fos_nodes = querys.count_nodes(database_url, database_name, PaperApp.FIELD_OF_STUDY)
@@ -262,7 +266,7 @@ if __name__ == '__main__':
             print(f'Total {PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
     
 
-    if 6 in model_options or 7 in model_options:
+    if 6 in model_options or 8 in model_options:
         create_nodes = 'y'
 
         count_paper_nodes = querys.count_nodes(database_url, database_name, PaperApp.PAPER)
@@ -280,6 +284,16 @@ if __name__ == '__main__':
             print(f'Total {PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
     
 
+    if 7 in model_options or 8 in model_options:
+        create_nodes = 'y'
+        
+        if create_nodes.lower() == 'y':
+            populate_db(PaperApp.PAPER_CITES_REL, dataset_path, dataset_encoding, BATCH_SIZE_PAPER_NODES, database_url, database_name)
+
+            print(f'\n{PaperApp.PAPER_CITES_REL.value} relationships loaded to {database_name} database.')
+
+
+
     time_end = time.time()
     time_elapsed = time_end - time_start
     time_elapsed_hours = time_elapsed // 3600
@@ -293,9 +307,9 @@ if __name__ == '__main__':
     print(f'Total Nodes in Database: {querys.count_nodes(database_url, database_name)}')
     # print(f'Total Relationships in Database: {querys.count_relationships(database_url, database_name)}')
 
-    if any([option in model_options for option in [1, 5, 6, 7]]):
+    if any([option in model_options for option in [1, 5, 6, 7, 8]]):
         print('\nPaper App Nodes:')
-        if 7 in model_options:
+        if 8 in model_options:
             print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
             print(f'{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
             print(f'{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
@@ -310,14 +324,14 @@ if __name__ == '__main__':
             print(f'\n{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
 
 
-    if any([option in model_options for option in [4, 7]]):
+    if any([option in model_options for option in [4, 8]]):
         print('\nAuthor App Nodes:')
         print(f'\n{AuthorApp.AUTHOR.value} Nodes: {count_author_nodes}')
 
 
-    if any([option in model_options for option in [2, 3, 4, 7]]):
+    if any([option in model_options for option in [2, 3, 4, 8]]):
         print('\nInstitution App Nodes:')
-        if 7 in model_options:
+        if 8 in model_options:
             print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
             print(f'{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
             print(f'{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
