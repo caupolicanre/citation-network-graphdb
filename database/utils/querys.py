@@ -78,3 +78,77 @@ def count_relationships(database_url: str, database_name: str,
     results, meta = db.cypher_query(query)
     
     return results[0][0]
+
+
+def search_node_by_name(database_url: str, database_name: str,
+                        label: Union[AuthorApp.AUTHOR, PaperApp.PAPER, PaperApp.FIELD_OF_STUDY,
+                                     InstitutionApp.ORGANIZATION, InstitutionApp.PUBLISHER, InstitutionApp.VENUE],
+                        name: str) -> dict:
+    '''
+    Search for nodes with the specified name in the database.
+    Using the neomodel library.
+
+    Parameters
+    ----------
+    database_url : str
+        URL of the database.
+    database_name : str
+        Name of the database.
+    label : Union[AuthorApp.AUTHOR, PaperApp.PAPER, PaperApp.FIELD_OF_STUDY, InstitutionApp.ORGANIZATION, InstitutionApp.PUBLISHER, InstitutionApp.VENUE]
+        Label of the node to be searched.
+    name : str
+        Name of the node to be searched.
+    
+    Returns
+    -------
+    results
+        Nodes with the specified name in the database.
+    '''
+    config.DATABASE_URL = database_url
+    config.DATABASE_NAME = database_name
+
+    query = f"MATCH (n:{label.value}) WHERE n.name CONTAINS '{name}' RETURN n"
+
+    results, meta = db.cypher_query(query)
+
+    return results
+
+
+def search_path(database_url: str, database_name: str,
+                node_a: Union[AuthorApp.AUTHOR, PaperApp.PAPER, InstitutionApp.ORGANIZATION,
+                              InstitutionApp.PUBLISHER, InstitutionApp.VENUE],
+                node_b: Union[AuthorApp.AUTHOR, PaperApp.PAPER, InstitutionApp.ORGANIZATION,
+                              InstitutionApp.PUBLISHER, InstitutionApp.VENUE],
+                name_a: str, name_b: str) -> dict:
+    '''
+    Search for a path between two nodes with the specified names in the database.
+    Using the neomodel library.
+
+    Parameters
+    ----------
+    database_url : str
+        URL of the database.
+    database_name : str
+        Name of the database.
+    node_a : Union[AuthorApp.AUTHOR, PaperApp.PAPER, InstitutionApp.ORGANIZATION, InstitutionApp.PUBLISHER, InstitutionApp.VENUE]
+        Label of the first node in the path.
+    node_b : Union[AuthorApp.AUTHOR, PaperApp.PAPER, InstitutionApp.ORGANIZATION, InstitutionApp.PUBLISHER, InstitutionApp.VENUE]
+        Label of the second node in the path.
+    name_a : str
+        Name of the first node in the path.
+    name_b : str
+        Name of the second node in the path.
+    
+    Returns
+    -------
+    results
+        Path between the two nodes with the specified names in the database.
+    '''
+    config.DATABASE_URL = database_url
+    config.DATABASE_NAME = database_name
+
+    query = f"MATCH p = shortestPath((n:{node_a.value})-[*]-(m:{node_b.value})) WHERE n.name CONTAINS '{name_a}' AND m.name CONTAINS '{name_b}' RETURN p"
+
+    results, meta = db.cypher_query(query)
+
+    return results
