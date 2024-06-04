@@ -87,11 +87,12 @@ def create_venue_nodes(nodes: list, database_url: str, database_name: str) -> No
         Required fields:
             - venue: dict (required)
                 Venue information.
-                Required fields:
-                    - raw: str (required)
-                        Venue name.
-                    - type: str (optional)
-                        Venue type.
+                - id: int (required)
+                    Venue ID.
+                - raw: str (required)
+                    Venue name.
+                - type: str (optional)
+                    Venue type.
     database_url : str
         URL of the database.
     database_name : str
@@ -105,13 +106,14 @@ def create_venue_nodes(nodes: list, database_url: str, database_name: str) -> No
             venue = obj.get('venue', None)
 
             if venue:
+                venue_id = venue.get('id', None)
                 venue_name = venue.get('raw', None)
                 venue_type = venue.get('type', None)
 
-                venue_node = Venue.nodes.get_or_none(name=venue_name)
+                venue_node = Venue.nodes.get_or_none(venue_id=venue_id, name=venue_name)
 
                 if not venue_node:
-                    venue_node = Venue(name=venue_name).save()
+                    venue_node = Venue(venue_id=venue_id, name=venue_name).save()
 
                     if venue_type:
                         venue_type_node = VenueType.nodes.get_or_none(type=venue_type)
@@ -137,6 +139,8 @@ def create_author_org_nodes(nodes: list, database_url: str, database_name: str) 
         Required fields:
             - authors: list (required)
                 List of authors.
+                - id: int (required)
+                    Author ID.
                 - name: str (required)
                     Author name.
                 - org: str
@@ -154,13 +158,14 @@ def create_author_org_nodes(nodes: list, database_url: str, database_name: str) 
             authors = obj.get('authors', [])
 
             for author in authors:
+                author_id = author.get('id', None)
                 author_name = author.get('name', None)
                 org_name = author.get('org', None)
 
-                author_node = Author.nodes.get_or_none(name=author_name)
+                author_node = Author.nodes.get_or_none(author_id=author_id, name=author_name)
 
                 if not author_node:
-                    author_node = Author(name=author_name).save()
+                    author_node = Author(author_id=author_id, name=author_name).save()
 
                 if org_name:
                     organization_node = Organization.nodes.get_or_none(name=org_name)
@@ -313,7 +318,7 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                 issue = int(issue) if issue.isdigit() else None
 
 
-            paper_node = Paper.nodes.get_or_none(title=title)
+            paper_node = Paper.nodes.get(paper_id=paper_id, title=title)
 
             if not paper_node:
 
@@ -345,16 +350,20 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                 
 
                 if venue:
-                    venue_node = Venue.nodes.get(name=venue['raw'])
+                    venue_id = venue.get('id', None)
+                    venue_name = venue.get('raw', None)
+
+                    venue_node = Venue.nodes.get(venue_id=venue_id, name=venue_name)
 
                     if not paper.venue.is_connected(venue_node):
                         paper.venue.connect(venue_node)
 
 
                 for author in authors:
+                    author_id = author.get('id', None)
                     author_name = author.get('name', None)
 
-                    author_node = Author.nodes.get(name=author_name)
+                    author_node = Author.nodes.get(author_id=author_id, name=author_name)
                     
                     if not paper.author.is_connected(author_node):
                         paper.author.connect(author_node)
@@ -398,10 +407,11 @@ def create_paper_references(nodes: list, database_url: str, database_name: str) 
 
     with db.transaction:
         for obj in nodes:
+            paper_id = obj['id']
             paper_title = obj['title']
             references = obj.get('references', [])
 
-            paper = Paper.nodes.get_or_none(title=paper_title)
+            paper = Paper.nodes.get_or_none(paper_id=paper_id, title=paper_title)
 
             if paper:
                 for ref_id in references:

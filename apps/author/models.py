@@ -22,8 +22,8 @@ class AuthorOrganizationRel(StructuredRel):
 
 
 class Author(StructuredNode):
-    author_id = UniqueIdProperty()
-    name = StringProperty(unique_index=True, required=True)
+    author_id = IntegerProperty(unique_index=True, required=True)
+    name = StringProperty(required=True)
     organization = RelationshipTo('apps.institution.models.Organization', 'AFFILIATED_WITH', cardinality=ZeroOrMore, model=AuthorOrganizationRel)
     paper = RelationshipFrom('apps.paper.models.Paper', 'AUTHORED_BY', cardinality=ZeroOrMore)
 
