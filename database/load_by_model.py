@@ -398,18 +398,18 @@ def create_paper_references(nodes: list, database_url: str, database_name: str) 
 
     with db.transaction:
         for obj in nodes:
-            paper_id = int(obj['id'])
             paper_title = obj['title']
             references = obj.get('references', [])
 
-            paper_node = Paper.nodes.get(paper_id=paper_id, title=paper_title)
+            paper = Paper.nodes.get_or_none(title=paper_title)
 
-            for ref_id in references:
-                ref_id = int(ref_id)
-                ref_paper_node = Paper.nodes.get_or_none(paper_id=ref_id)
+            if paper:
+                for ref_id in references:
+                    ref_id = int(ref_id)
+                    ref_node = Paper.nodes.get_or_none(paper_id=ref_id)
 
-                if ref_paper_node:
-                    if not paper_node.reference.is_connected(ref_paper_node):
-                        paper_node.reference.connect(ref_paper_node)
+                    if ref_node:
+                        if not paper.reference.is_connected(ref_node):
+                            paper.reference.connect(ref_node)
 
     gc.collect()
