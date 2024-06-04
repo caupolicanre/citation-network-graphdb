@@ -106,14 +106,13 @@ def create_venue_nodes(nodes: list, database_url: str, database_name: str) -> No
             venue = obj.get('venue', None)
 
             if venue:
-                venue_id = venue.get('id', None)
                 venue_name = venue.get('raw', None)
                 venue_type = venue.get('type', None)
 
-                venue_node = Venue.nodes.get_or_none(venue_id=venue_id, name=venue_name)
+                venue_node = Venue.nodes.get_or_none(name=venue_name)
 
                 if not venue_node:
-                    venue_node = Venue(venue_id=venue_id, name=venue_name).save()
+                    venue_node = Venue(name=venue_name).save()
 
                     if venue_type:
                         venue_type_node = VenueType.nodes.get_or_none(type=venue_type)
@@ -350,10 +349,9 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                 
 
                 if venue:
-                    venue_id = venue.get('id', None)
                     venue_name = venue.get('raw', None)
 
-                    venue_node = Venue.nodes.get(venue_id=venue_id, name=venue_name)
+                    venue_node = Venue.nodes.get(name=venue_name)
 
                     if not paper.venue.is_connected(venue_node):
                         paper.venue.connect(venue_node)
