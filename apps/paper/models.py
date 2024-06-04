@@ -36,7 +36,7 @@ class PaperFieldOfStudyRel(StructuredRel):
 
 class Paper(StructuredNode):
     paper_id = IntegerProperty(unique_index=True, required=True)
-    title = StringProperty(unique_index=True, required=True)
+    title = StringProperty(required=True)
     doi = StringProperty(default=None)
     year = DateTimeFormatProperty(format='%Y')
     page_start = IntegerProperty(max_length=4, default=None)
