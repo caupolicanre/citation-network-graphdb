@@ -161,7 +161,7 @@ def create_author_org_nodes(nodes: list, database_url: str, database_name: str) 
                 author_name = author.get('name', None)
                 org_name = author.get('org', None)
 
-                author_node = Author.nodes.get_or_none(author_id=author_id, name=author_name)
+                author_node = Author.nodes.get_or_none(author_id=author_id)
 
                 if not author_node:
                     author_node = Author(author_id=author_id, name=author_name).save()
