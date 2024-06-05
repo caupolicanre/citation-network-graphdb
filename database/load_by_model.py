@@ -317,7 +317,7 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                 issue = int(issue) if issue.isdigit() else None
 
 
-            paper_node = Paper.nodes.get(paper_id=paper_id, title=title)
+            paper_node = Paper.nodes.get_or_none(paper_id=paper_id, title=title)
 
             if not paper_node:
 
@@ -359,9 +359,8 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
 
                 for author in authors:
                     author_id = author.get('id', None)
-                    author_name = author.get('name', None)
 
-                    author_node = Author.nodes.get(author_id=author_id, name=author_name)
+                    author_node = Author.nodes.get(author_id=author_id)
                     
                     if not paper.author.is_connected(author_node):
                         paper.author.connect(author_node)
