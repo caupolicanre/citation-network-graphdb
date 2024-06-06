@@ -282,6 +282,7 @@ if __name__ == '__main__':
         paper_nodes_batch = []
 
         print(f'\nCreating {PaperApp.PAPER.value} connections')
+        print(f'Models selected: {", ".join([model.value for model in paper_connections_models_selected])}')
 
         with open(dataset_path, 'r', encoding=dataset_encoding) as f:
             objects = ijson.items(f, 'item')
