@@ -102,6 +102,44 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
     gc.collect()
 
 
+def menu_create_models_nodes(database_url: str, database_name: str,
+                             dataset_path: str, dataset_encoding: str, batch_size: int,
+                             model: Union[AuthorApp, InstitutionApp, PaperApp]) -> None:
+    '''
+    Menu to create the nodes of the selected model.
+    
+    Parameters
+    ----------
+    database_url : str
+        URL of the database.
+    database_name : str
+        Name of the database.
+    dataset_path : str
+        Path to the dataset.
+    dataset_encoding : str
+        Encoding of the dataset.
+    batch_size : int
+        Batch size to load the nodes.
+    model : Union[AuthorApp, InstitutionApp, PaperApp]
+        Model to populate.
+    '''
+    create_nodes = 'y'
+    count_nodes = querys.count_nodes(database_url, database_name, model)
+
+    if count_nodes > 0:
+        print(f'\n{model.value} has {count_nodes} nodes created.')
+
+        create_nodes = None
+        while create_nodes not in ['y', 'n']:
+            create_nodes = input(f'Do you still want to create {model.value} nodes? (y/n): ')
+        
+        if create_nodes.lower() == 'y':
+            populate_db(model, dataset_path, dataset_encoding, batch_size, database_url, database_name)
+
+            count_nodes = querys.count_nodes(database_url, database_name, model)
+            print(f'Total {model.value} Nodes: {count_nodes}')
+
+
 
 
 if __name__ == '__main__':
@@ -115,11 +153,9 @@ if __name__ == '__main__':
     dataset_path = os.environ.get('DATASET_PATH', './dataset/dblp.v12.json')
     dataset_encoding = detect_encoding(dataset_path)
 
+    BATCH_SIZE_REQUIRED_NODES = int(os.environ.get('BATCH_SIZE_REQUIRED_NODES', 10000))
     BATCH_SIZE_PAPER_NODES = int(os.environ.get('BATCH_SIZE_PAPER_NODES', 5000))
     paper_nodes_batch = []
-
-    BATCH_SIZE_REQUIRED_NODES = int(os.environ.get('BATCH_SIZE_REQUIRED_NODES', 10000))
-    required_nodes_batch = []
 
 
 
@@ -163,9 +199,9 @@ if __name__ == '__main__':
     while not all([opt in ['1', '2', '3', '4', '5', '6', '7', '8'] for opt in model_options]) \
           or len(model_options) == 0 \
           or ('8' in model_options and len(model_options) > 1):
-        print('Invalid input. Please select the model nodes to create.')
-        model_options = input('\nModels (select by number, separated by comma. Ex: 1,2,3):\n')
-        model_options = model_options.split(',')
+            print('Invalid input. Please select the model nodes to create.')
+            model_options = input('\nModels (select by number, separated by comma. Ex: 1,2,3):\n')
+            model_options = model_options.split(',')
 
     model_options = [int(opt) for opt in model_options]
 
@@ -180,52 +216,18 @@ if __name__ == '__main__':
         if count_doc_type_nodes > 0:
             print(f'\n{PaperApp.DOCUMENT_TYPE.value} has {count_doc_type_nodes} nodes created.')
 
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input(f'Do you still want to create {PaperApp.DOCUMENT_TYPE.value} nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-            populate_db(PaperApp.DOCUMENT_TYPE, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, database_url, database_name)
 
-            count_doc_type_nodes = querys.count_nodes(database_url, database_name, PaperApp.DOCUMENT_TYPE)
-            print(f'Total {PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
 
+    time_start = time.time()
+
+    if 1 in model_options or 8 in model_options:
+        menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.DOCUMENT_TYPE)
 
     if 2 in model_options or 8 in model_options:
-        create_nodes = 'y'
-
-        count_publisher_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)
-        if count_publisher_nodes > 0:
-            print(f'\n{InstitutionApp.PUBLISHER.value} has {count_publisher_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input(f'Do you still want to create {InstitutionApp.PUBLISHER.value} nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-            populate_db(InstitutionApp.PUBLISHER, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, database_url, database_name)
-
-            count_publisher_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)
-            print(f'Total {InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
-
+        menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, InstitutionApp.PUBLISHER)
 
     if 3 in model_options or 8 in model_options:
-        create_nodes = 'y'
-
-        count_venue_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)
-        if count_venue_nodes > 0:
-            print(f'\n{InstitutionApp.VENUE.value} has {count_venue_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input(f'Do you still want to create {InstitutionApp.VENUE.value} nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-            populate_db(InstitutionApp.VENUE, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, database_url, database_name)
-
-            count_venue_nodes = querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)
-            print(f'Total {InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
-
+        menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, InstitutionApp.VENUE)
 
     if 4 in model_options or 8 in model_options:
         create_nodes = 'y'
@@ -247,25 +249,9 @@ if __name__ == '__main__':
             print(f'Total {AuthorApp.AUTHOR.value} Nodes: {count_author_nodes}')
             print(f'Total {InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
 
-
     if 5 in model_options or 8 in model_options:
-        create_nodes = 'y'
-
-        count_fos_nodes = querys.count_nodes(database_url, database_name, PaperApp.FIELD_OF_STUDY)
-        if count_fos_nodes > 0:
-            print(f'\n{PaperApp.FIELD_OF_STUDY.value} has {count_fos_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input(f'Do you still want to create {PaperApp.FIELD_OF_STUDY.value} nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-            populate_db(PaperApp.FIELD_OF_STUDY, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, database_url, database_name)
-
-            count_fos_nodes = querys.count_nodes(database_url, database_name, PaperApp.FIELD_OF_STUDY)
-            print(f'Total {PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
+        menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.FIELD_OF_STUDY)
     
-
     if 6 in model_options or 8 in model_options:
         create_nodes = 'y'
 
@@ -310,18 +296,18 @@ if __name__ == '__main__':
     if any([option in model_options for option in [1, 5, 6, 7, 8]]):
         print('\nPaper App Nodes:')
         if 8 in model_options:
-            print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
-            print(f'{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
-            print(f'{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
+            print(f'\n{PaperApp.PAPER.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.PAPER)}')
+            print(f'{PaperApp.DOCUMENT_TYPE.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.DOCUMENT_TYPE)}')
+            print(f'{PaperApp.FIELD_OF_STUDY.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.FIELD_OF_STUDY)}')
 
         elif 6 in model_options:
-            print(f'\n{PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
+            print(f'\n{PaperApp.PAPER.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.PAPER)}')
 
         elif 1 in model_options:
-            print(f'\n{PaperApp.DOCUMENT_TYPE.value} Nodes: {count_doc_type_nodes}')
+            print(f'\n{PaperApp.DOCUMENT_TYPE.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.DOCUMENT_TYPE)}')
 
         elif 5 in model_options:
-            print(f'\n{PaperApp.FIELD_OF_STUDY.value} Nodes: {count_fos_nodes}')
+            print(f'\n{PaperApp.FIELD_OF_STUDY.value} Nodes: {querys.count_nodes(database_url, database_name, PaperApp.FIELD_OF_STUDY)}')
 
 
     if any([option in model_options for option in [4, 8]]):
@@ -333,14 +319,14 @@ if __name__ == '__main__':
         print('\nInstitution App Nodes:')
         if 8 in model_options:
             print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
-            print(f'{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
-            print(f'{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
+            print(f'{InstitutionApp.PUBLISHER.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)}')
+            print(f'{InstitutionApp.VENUE.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)}')
         
         elif 4 in model_options:
             print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
         
         elif 2 in model_options:
-            print(f'\n{InstitutionApp.PUBLISHER.value} Nodes: {count_publisher_nodes}')
+            print(f'\n{InstitutionApp.PUBLISHER.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)}')
         
         elif 3 in model_options:
-            print(f'\n{InstitutionApp.VENUE.value} Nodes: {count_venue_nodes}')
+            print(f'\n{InstitutionApp.VENUE.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)}')
