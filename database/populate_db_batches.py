@@ -16,7 +16,7 @@ from core.funcs import detect_encoding
 from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
-from database.load_by_model import create_document_type_nodes, create_publisher_nodes, create_venue_nodes, create_author_org_nodes, create_fos_nodes, create_paper_nodes, create_paper_references
+from database.load_by_model import create_document_type_nodes, create_publisher_nodes, create_venue_nodes, create_author_org_nodes, create_fos_nodes, create_paper_nodes, create_paper_connections
 
 
 
@@ -69,9 +69,6 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
 
                 elif model == PaperApp.PAPER:
                     create_paper_nodes(batch, database_url, database_name)
-                
-                elif model == PaperApp.PAPER_CITES_REL:
-                    create_paper_references(batch, database_url, database_name)
 
                 batch = []
 
@@ -93,9 +90,6 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
 
             elif model == PaperApp.PAPER:
                 create_paper_nodes(batch, database_url, database_name)
-            
-            elif model == PaperApp.PAPER_CITES_REL:
-                create_paper_references(batch, database_url, database_name)
 
     print(f'\n{model.value} nodes loaded to {database_name} database.')
 
@@ -189,8 +183,8 @@ if __name__ == '__main__':
     print(f'3. {InstitutionApp.VENUE.value}')
     print(f'4. {AuthorApp.AUTHOR.value} and {InstitutionApp.ORGANIZATION.value}')
     print(f'5. {PaperApp.FIELD_OF_STUDY.value}')
-    print(f'6. {PaperApp.PAPER.value} (It is required to create the previous nodes first)')
-    print(f'7. {PaperApp.PAPER_CITES_REL.value} (It is required to have {PaperApp.PAPER.value} nodes created first)')
+    print(f'6. {PaperApp.PAPER.value}')
+    print(f'7. Create {PaperApp.PAPER.value} connections (It is required to have all previous nodes created first)')
     print('8. All')
 
     model_options = input('\nModels (select by number, separated by comma. Ex: 1,2,3):\n')
@@ -206,15 +200,44 @@ if __name__ == '__main__':
     model_options = [int(opt) for opt in model_options]
 
 
-    time_start = time.time()
+    if 7 in model_options or 8 in model_options:
+        print('\n=============================================')
+        print(f' Create {PaperApp.PAPER.value} connections')
+        print('=============================================')
+        print(f'Batch size: {BATCH_SIZE_PAPER_NODES}')
+        print(f'Select the {PaperApp.PAPER.value} connections to create:')
+        print(f'1. {PaperApp.DOCUMENT_TYPE.value}')
+        print(f'2. {InstitutionApp.PUBLISHER.value}')
+        print(f'3. {InstitutionApp.VENUE.value}')
+        print(f'4. {AuthorApp.AUTHOR.value}')
+        print(f'5. {PaperApp.FIELD_OF_STUDY.value}')
+        print(f'6. {PaperApp.PAPER_CITES_REL.value} (Paper references)')
+        print(f'7. All')
 
+        paper_connections_options = input('\nConnections (select by number, separated by comma. Ex: 1,2,3):\n')
+        paper_connections_options = paper_connections_options.split(',')
 
-    if 1 in model_options or 8 in model_options:
-        create_nodes = 'y'
+        while not all([opt in ['1', '2', '3', '4', '5', '6', '7'] for opt in paper_connections_options]) \
+              or len(paper_connections_options) == 0 \
+              or ('7' in paper_connections_options and len(paper_connections_options) > 1):
+                print('Invalid input. Please select the connections to create.')
+                paper_connections_options = input('\nConnections (select by number, separated by comma. Ex: 1,2,3):\n')
+                paper_connections_options = paper_connections_options.split(',')
+        
+        paper_connections_options = [int(opt) for opt in paper_connections_options]
+        paper_connections_models = {
+            1: PaperApp.DOCUMENT_TYPE,
+            2: InstitutionApp.PUBLISHER,
+            3: InstitutionApp.VENUE,
+            4: AuthorApp.AUTHOR,
+            5: PaperApp.FIELD_OF_STUDY,
+            6: PaperApp.PAPER_CITES_REL,
+        }
 
-        count_doc_type_nodes = querys.count_nodes(database_url, database_name, PaperApp.DOCUMENT_TYPE)
-        if count_doc_type_nodes > 0:
-            print(f'\n{PaperApp.DOCUMENT_TYPE.value} has {count_doc_type_nodes} nodes created.')
+        if 7 in paper_connections_options:
+            paper_connections_models_selected = list(paper_connections_models.values())
+        else:
+            paper_connections_models_selected = [paper_connections_models[opt] for opt in paper_connections_options]
 
 
 
@@ -253,30 +276,27 @@ if __name__ == '__main__':
         menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.FIELD_OF_STUDY)
     
     if 6 in model_options or 8 in model_options:
-        create_nodes = 'y'
-
-        count_paper_nodes = querys.count_nodes(database_url, database_name, PaperApp.PAPER)
-        if count_paper_nodes > 0:
-            print(f'\n{PaperApp.PAPER.value} has {count_paper_nodes} nodes created.')
-
-            create_nodes = None
-            while create_nodes not in ['y', 'n']:
-                create_nodes = input(f'Do you still want to create {PaperApp.PAPER.value} nodes? (y/n): ')
-        
-        if create_nodes.lower() == 'y':
-            populate_db(PaperApp.PAPER, dataset_path, dataset_encoding, BATCH_SIZE_PAPER_NODES, database_url, database_name)
-
-            count_paper_nodes = querys.count_nodes(database_url, database_name, PaperApp.PAPER)
-            print(f'Total {PaperApp.PAPER.value} Nodes: {count_paper_nodes}')
+        menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.PAPER)
     
-
     if 7 in model_options or 8 in model_options:
-        create_nodes = 'y'
-        
-        if create_nodes.lower() == 'y':
-            populate_db(PaperApp.PAPER_CITES_REL, dataset_path, dataset_encoding, BATCH_SIZE_PAPER_NODES, database_url, database_name)
+        paper_nodes_batch = []
 
-            print(f'\n{PaperApp.PAPER_CITES_REL.value} relationships loaded to {database_name} database.')
+        print(f'\nCreating {PaperApp.PAPER.value} connections')
+
+        with open(dataset_path, 'r', encoding=dataset_encoding) as f:
+            objects = ijson.items(f, 'item')
+
+            for obj in tqdm(objects, desc=f'Creating {PaperApp.PAPER.value} connections', unit=' papers'):
+                paper_nodes_batch.append(obj)
+
+                if len(paper_nodes_batch) >= BATCH_SIZE_PAPER_NODES:
+                    create_paper_connections(paper_nodes_batch, database_url, database_name, paper_connections_models_selected)
+                    paper_nodes_batch = []
+
+            if paper_nodes_batch:
+                create_paper_connections(paper_nodes_batch, database_url, database_name, paper_connections_models_selected)
+
+        print(f'\n{PaperApp.PAPER.value} relationships loaded to {database_name} database.')
 
 
 

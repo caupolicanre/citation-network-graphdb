@@ -1,7 +1,11 @@
 import gc
-from datetime import datetime
 
 from neomodel import config, db
+
+from datetime import datetime
+from typing import Union, List
+
+from core.enums.app_enums import AuthorApp, InstitutionApp, PaperApp
 
 from apps.author.models import Author, AuthorOrganizationRel
 from apps.institution.models import Organization, Publisher, Venue, VenueType
@@ -223,13 +227,6 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
     '''
     Create nodes for each paper in the dataset with neomodel.
     Using the Paper model.
-    The relationships are created with the following models, so they need to be created before this function is called:
-        - DocumentType
-        - Publisher
-        - Venue
-        - Author
-        - Organization
-        - FieldOfStudy
     
     Parameters
     ----------
@@ -240,41 +237,6 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                 Paper ID.
             - title: str (required)
                 Paper title.
-            - authors: list (required at least one author)
-                List of authors.
-                - name: str (required)
-                    Author name.
-        Optional fields:
-            - doi: str
-                DOI of the paper.
-            - year: int
-                Year of the paper.
-            - page_start: int
-                Page start of the paper.
-            - page_end: int
-                Page end of the paper.
-            - volume: int
-                Volume of the paper.
-            - issue: int
-                Issue of the paper.
-            - n_citation: int
-                Number of citations of the paper.
-            - doc_type: str
-                Document type of the paper.
-            - publisher: str
-                Publisher of the paper.
-            - venue: dict
-                Venue of the paper.
-                - raw: str (required)
-                    Venue name.
-            - fos: list
-                List of field of study.
-                - name: str (required)
-                    Field of study name.
-                - w: float (optional)
-                    Weight of the field of study. Default is 0.0.
-            - references: list
-                List of paper IDs that the paper references.
 
     database_url : str (required)
         URL of the database.
@@ -295,13 +257,6 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
             volume = obj.get('volume', None)
             issue = obj.get('issue', None)
             n_citation = obj.get('n_citation', 0)
-
-            doc_type = obj.get('doc_type', None)
-            publisher = obj.get('publisher', None)
-            venue = obj.get('venue', None)
-            authors = obj.get('authors', []) # List of Dict
-            fields_of_study = obj.get('fos', []) # List of Dict
-
 
             # Clean up paper data
             if doi == '':
@@ -334,71 +289,32 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                     n_citation=n_citation
                 ).save()
 
-
-                if doc_type:
-                    doc_type_node = DocumentType.nodes.get(type=doc_type)
-
-                    if not paper.type.is_connected(doc_type_node):
-                        paper.type.connect(doc_type_node)
-
-
-                if publisher:
-                    publisher_node = Publisher.nodes.get(name=publisher)
-                    
-                    if not paper.publisher.is_connected(publisher_node):
-                        paper.publisher.connect(publisher_node)
-                
-
-                if venue:
-                    venue_name = venue.get('raw', None)
-
-                    venue_node = Venue.nodes.get(name=venue_name)
-
-                    if not paper.venue.is_connected(venue_node):
-                        paper.venue.connect(venue_node)
-
-
-                for author in authors:
-                    author_id = author.get('id', None)
-
-                    author_node = Author.nodes.get(author_id=author_id)
-                    
-                    if not paper.author.is_connected(author_node):
-                        paper.author.connect(author_node)
-
-
-                for fos in fields_of_study:
-                    fos_name = fos.get('name', None)
-                    fos_weight = fos.get('w', 0.0)
-
-                    fos_node = FieldOfStudy.nodes.get(name=fos_name)
-                    
-                    if not paper.field_of_study.is_connected(fos_node):
-                        paper.field_of_study.connect(fos_node, {'weight': fos_weight})
-
     gc.collect()
 
 
-def create_paper_references(nodes: list, database_url: str, database_name: str) -> None:
+def create_paper_connections(nodes: list, database_url: str, database_name: str,
+                             models_list: List[Union[AuthorApp, InstitutionApp, PaperApp]]) -> None:
     '''
-    Create relationships for each paper that references another paper in the dataset with neomodel.
-    Using the Paper model.
+    Create relationships for each paper in the dataset with neomodel.
+    It is necessary to have the Paper nodes created before calling this function.
+    The relationships are created with the following models, so they need to be created before this function is called:
+        - DocumentType
+        - Publisher
+        - Venue
+        - Author
+        - Organization
+        - FieldOfStudy
 
     Parameters
     ----------
     nodes : list
         A list of dictionaries containing the papers information.
-        Required fields:
-            - id: int (required)
-                Paper ID.
-            - title: str (required)
-                Paper title.
-            - references: list (required)
-                List of paper IDs that the paper references.
     database_url : str (required)
         URL of the database.
     database_name : str (required)
         Name of the database.
+    models_list : list (required) - Options: AuthorApp, InstitutionApp, PaperApp
+        A list of models to connect to the Paper model. It is necessary to have the models nodes created before calling this function.
     '''
     config.DATABASE_URL = database_url
     config.DATABASE_NAME = database_name
@@ -407,17 +323,69 @@ def create_paper_references(nodes: list, database_url: str, database_name: str) 
         for obj in nodes:
             paper_id = obj['id']
             paper_title = obj['title']
+
+            doc_type = obj.get('doc_type', None)
+            publisher = obj.get('publisher', None)
+            venue = obj.get('venue', None)
+            authors = obj.get('authors', [])
+            fields_of_study = obj.get('fos', [])
             references = obj.get('references', [])
+
 
             paper = Paper.nodes.get_or_none(paper_id=paper_id, title=paper_title)
 
             if paper:
-                for ref_id in references:
-                    ref_id = int(ref_id)
-                    ref_node = Paper.nodes.get_or_none(paper_id=ref_id)
+                if doc_type and PaperApp.DOCUMENT_TYPE in models_list:
+                    doc_type_node = DocumentType.nodes.get(type=doc_type)
 
-                    if ref_node:
-                        if not paper.reference.is_connected(ref_node):
-                            paper.reference.connect(ref_node)
+                    if not paper.type.is_connected(doc_type_node):
+                        paper.type.connect(doc_type_node)
+
+
+                if publisher and InstitutionApp.PUBLISHER in models_list:
+                    publisher_node = Publisher.nodes.get(name=publisher)
+                    
+                    if not paper.publisher.is_connected(publisher_node):
+                        paper.publisher.connect(publisher_node)
+                
+
+                if venue and InstitutionApp.VENUE in models_list:
+                    venue_name = venue.get('raw', None)
+                    venue_node = Venue.nodes.get(name=venue_name)
+
+                    if not paper.venue.is_connected(venue_node):
+                        paper.venue.connect(venue_node)
+                
+
+                if AuthorApp.AUTHOR in models_list or InstitutionApp.ORGANIZATION in models_list:
+                    for author in authors:
+                        author_id = author.get('id', None)
+                        author_node = Author.nodes.get(author_id=author_id)
+
+                        if not paper.author.is_connected(author_node):
+                            paper.author.connect(author_node)
+                
+
+                if PaperApp.FIELD_OF_STUDY in models_list:
+                    for fos in fields_of_study:
+                        fos_name = fos.get('name', None)
+                        fos_name = fos_name.replace(' ', '_')
+                        fos_name = fos_name.lower()
+                        fos_weight = fos.get('w', 0.0)
+
+                        fos_node = FieldOfStudy.nodes.get(name=fos_name)
+
+                        if not paper.field_of_study.is_connected(fos_node):
+                            paper.field_of_study.connect(fos_node, {'weight': fos_weight})
+
+
+                if PaperApp.PAPER_CITES_REL in models_list:
+                    for ref_id in references:
+                        ref_id = int(ref_id)
+                        ref_node = Paper.nodes.get_or_none(paper_id=ref_id)
+
+                        if ref_node:
+                            if not paper.reference.is_connected(ref_node):
+                                paper.reference.connect(ref_node)
 
     gc.collect()
