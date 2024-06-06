@@ -208,6 +208,8 @@ def create_fos_nodes(nodes: list, database_url: str, database_name: str) -> None
 
             for fos in fields_of_study:
                 fos_name = fos.get('name', None)
+                fos_name = fos_name.replace(' ', '_')
+                fos_name = fos_name.lower()
 
                 fos_node = FieldOfStudy.nodes.get_or_none(name=fos_name)
 
@@ -299,7 +301,6 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
             venue = obj.get('venue', None)
             authors = obj.get('authors', []) # List of Dict
             fields_of_study = obj.get('fos', []) # List of Dict
-            references = obj.get('references', []) # List of Int
 
 
             # Clean up paper data
