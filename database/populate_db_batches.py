@@ -127,11 +127,11 @@ def menu_create_models_nodes(database_url: str, database_name: str,
         while create_nodes not in ['y', 'n']:
             create_nodes = input(f'Do you still want to create {model.value} nodes? (y/n): ')
         
-        if create_nodes.lower() == 'y':
-            populate_db(model, dataset_path, dataset_encoding, batch_size, database_url, database_name)
+    if create_nodes.lower() == 'y':
+        populate_db(model, dataset_path, dataset_encoding, batch_size, database_url, database_name)
 
-            count_nodes = querys.count_nodes(database_url, database_name, model)
-            print(f'Total {model.value} Nodes: {count_nodes}')
+        count_nodes = querys.count_nodes(database_url, database_name, model)
+        print(f'Total {model.value} Nodes: {count_nodes}')
 
 
 
