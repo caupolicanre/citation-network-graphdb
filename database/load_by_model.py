@@ -281,7 +281,7 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
                     paper_id=paper_id,
                     title=title,
                     doi=doi,
-                    year=year,
+                    year=year if year else None,
                     page_start=int(page_start) if page_start else None,
                     page_end=int(page_end) if page_end else None,
                     volume=int(volume) if volume else None,
