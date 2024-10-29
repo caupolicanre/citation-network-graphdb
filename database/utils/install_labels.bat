@@ -56,7 +56,7 @@ echo 2. Test
 
 :set_db
 echo.
-set /p db=Database: 
+set /p db=Database:
 
 
 set URI=%DB_URI%
@@ -86,7 +86,7 @@ echo 2. Specific apps
 
 :set_apps
 echo.
-set /p apps_install_option=Install option: 
+set /p apps_install_option=Install option:
 
 
 if %apps_install_option%==1 (
@@ -113,7 +113,7 @@ if %apps_install_option%==1 (
 
     @REM :select_apps
     @REM echo.
-    @REM set /p selected_apps=Select apps to install (by number, separated by comma): 
+    @REM set /p selected_apps=Select apps to install (by number, separated by comma):
     @REM setlocal enabledelayedexpansion
     @REM set APPS_LIST_INSTALL=
     @REM set invalid_selection=false
@@ -172,11 +172,11 @@ echo 3. Change Apps
 
 :confirm
 echo.
-set /p confirm=Option: 
+set /p confirm=Option:
 
 if %confirm%==1 (
     goto :install_labels
-    
+
 ) else if %confirm%==2 (
     goto :db_options
 
