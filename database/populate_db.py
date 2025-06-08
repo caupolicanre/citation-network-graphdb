@@ -1,8 +1,9 @@
 import os
 from os.path import join, dirname
 
-import dotenv
 from datetime import datetime
+
+import dotenv
 import ijson
 from tqdm import tqdm
 
@@ -12,9 +13,9 @@ from core.funcs import detect_encoding
 from core.enums.db_enums import DatabaseType
 from database.utils.db_connection import neomodel_connect
 
-from apps.author.models import Author, AuthorOrganizationRel
+from apps.author.models import Author
 from apps.institution.models import Organization, Publisher, Venue, VenueType
-from apps.paper.models import Paper, FieldOfStudy, PaperFieldOfStudyRel, DocumentType
+from apps.paper.models import Paper, FieldOfStudy, DocumentType
 
 
 
@@ -121,7 +122,7 @@ def create_nodes(obj: dict):
             publisher_node = Publisher.nodes.get_or_none(name=publisher)
             if not publisher_node:
                 publisher_node = Publisher(name=publisher).save()
-            
+
             if not paper.publisher.is_connected(publisher_node):
                 paper.publisher.connect(publisher_node)
 
@@ -131,7 +132,7 @@ def create_nodes(obj: dict):
 
             if not author_node:
                 author_node = Author(name=author_data['name']).save()
-            
+
             if not paper.author.is_connected(author_node):
                 paper.author.connect(author_node)
 
@@ -139,7 +140,7 @@ def create_nodes(obj: dict):
                 organization_node = Organization.nodes.get_or_none(name=author_data['org'])
                 if not organization_node:
                     organization_node = Organization(name=author_data['org']).save()
-                
+
                 if not author_node.organization.is_connected(organization_node):
                     author_node.organization.connect(organization_node)
 
@@ -148,7 +149,7 @@ def create_nodes(obj: dict):
             fos_node = FieldOfStudy.nodes.get_or_none(name=fos_data['name'])
             if not fos_node:
                 fos_node = FieldOfStudy(name=fos_data['name']).save()
-            
+
             if not paper.field_of_study.is_connected(fos_node):
                 paper.field_of_study.connect(fos_node, {'weight': fos_data["w"]})
 
@@ -169,7 +170,7 @@ def create_nodes(obj: dict):
                     venue_type_node = VenueType.nodes.get_or_none(type=venue['type'])
                     if not venue_type_node:
                         venue_type_node = VenueType(type=venue['type']).save()
-                
+
                     if not venue_node.type.is_connected(venue_type_node):
                         venue_node.type.connect(venue_type_node)
 

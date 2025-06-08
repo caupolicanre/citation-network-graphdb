@@ -1,5 +1,3 @@
-import json
-import ijson
 import chardet
 
 
@@ -11,7 +9,7 @@ def detect_encoding(file_path: str) -> str:
     ----------
     file_path : str
         The path to the file.
-    
+
     Returns
     -------
     str

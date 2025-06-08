@@ -16,7 +16,13 @@ from core.funcs import detect_encoding
 from database.utils import querys
 from database.utils.db_connection import neomodel_connect
 
-from database.load_by_model import create_document_type_nodes, create_publisher_nodes, create_venue_nodes, create_author_org_nodes, create_fos_nodes, create_paper_nodes, create_paper_connections
+from database.load_by_model import (create_document_type_nodes,
+                                    create_publisher_nodes,
+                                    create_venue_nodes,
+                                    create_author_org_nodes,
+                                    create_fos_nodes,
+                                    create_paper_nodes,
+                                    create_paper_connections)
 
 
 
@@ -61,7 +67,7 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
                 elif model == InstitutionApp.VENUE:
                     create_venue_nodes(batch, database_url, database_name)
 
-                elif model == AuthorApp.AUTHOR or model == InstitutionApp.ORGANIZATION:
+                elif model in (AuthorApp.AUTHOR, InstitutionApp.ORGANIZATION):
                     create_author_org_nodes(batch, database_url, database_name)
 
                 elif model == PaperApp.FIELD_OF_STUDY:
@@ -82,7 +88,7 @@ def populate_db(model: Union[AuthorApp, InstitutionApp, PaperApp],
             elif model == InstitutionApp.VENUE:
                 create_venue_nodes(batch, database_url, database_name)
 
-            elif model == AuthorApp.AUTHOR or model == InstitutionApp.ORGANIZATION:
+            elif model in (AuthorApp.AUTHOR, InstitutionApp.ORGANIZATION):
                 create_author_org_nodes(batch, database_url, database_name)
 
             elif model == PaperApp.FIELD_OF_STUDY:
@@ -101,7 +107,7 @@ def menu_create_models_nodes(database_url: str, database_name: str,
                              model: Union[AuthorApp, InstitutionApp, PaperApp]) -> None:
     '''
     Menu to create the nodes of the selected model.
-    
+
     Parameters
     ----------
     database_url : str
@@ -126,7 +132,7 @@ def menu_create_models_nodes(database_url: str, database_name: str,
         create_nodes = None
         while create_nodes not in ['y', 'n']:
             create_nodes = input(f'Do you still want to create {model.value} nodes? (y/n): ')
-        
+
     if create_nodes.lower() == 'y':
         populate_db(model, dataset_path, dataset_encoding, batch_size, database_url, database_name)
 
@@ -223,7 +229,7 @@ if __name__ == '__main__':
                 print('Invalid input. Please select the connections to create.')
                 paper_connections_options = input('\nConnections (select by number, separated by comma. Ex: 1,2,3):\n')
                 paper_connections_options = paper_connections_options.split(',')
-        
+
         paper_connections_options = [int(opt) for opt in paper_connections_options]
         paper_connections_models = {
             1: PaperApp.DOCUMENT_TYPE,
@@ -263,7 +269,7 @@ if __name__ == '__main__':
             create_nodes = None
             while create_nodes not in ['y', 'n']:
                 create_nodes = input(f'Do you still want to create {AuthorApp.AUTHOR.value} and {InstitutionApp.ORGANIZATION.value} nodes? (y/n): ')
-        
+
         if create_nodes.lower() == 'y':
             populate_db(AuthorApp.AUTHOR, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, database_url, database_name)
 
@@ -274,10 +280,10 @@ if __name__ == '__main__':
 
     if 5 in model_options or 8 in model_options:
         menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.FIELD_OF_STUDY)
-    
+
     if 6 in model_options or 8 in model_options:
         menu_create_models_nodes(database_url, database_name, dataset_path, dataset_encoding, BATCH_SIZE_REQUIRED_NODES, PaperApp.PAPER)
-    
+
     if 7 in model_options or 8 in model_options:
         paper_nodes_batch = []
 
@@ -342,12 +348,12 @@ if __name__ == '__main__':
             print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
             print(f'{InstitutionApp.PUBLISHER.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)}')
             print(f'{InstitutionApp.VENUE.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)}')
-        
+
         elif 4 in model_options:
             print(f'\n{InstitutionApp.ORGANIZATION.value} Nodes: {count_organization_nodes}')
-        
+
         elif 2 in model_options:
             print(f'\n{InstitutionApp.PUBLISHER.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.PUBLISHER)}')
-        
+
         elif 3 in model_options:
             print(f'\n{InstitutionApp.VENUE.value} Nodes: {querys.count_nodes(database_url, database_name, InstitutionApp.VENUE)}')

@@ -1,15 +1,14 @@
 import gc
-
-from neomodel import config, db
-
 from datetime import datetime
 from typing import Union, List
 
+from neomodel import config, db
+
 from core.enums.app_enums import AuthorApp, InstitutionApp, PaperApp
 
-from apps.author.models import Author, AuthorOrganizationRel
+from apps.author.models import Author
 from apps.institution.models import Organization, Publisher, Venue, VenueType
-from apps.paper.models import Paper, FieldOfStudy, PaperFieldOfStudyRel, DocumentType
+from apps.paper.models import Paper, FieldOfStudy, DocumentType
 
 
 
@@ -17,7 +16,7 @@ def create_document_type_nodes(nodes: list, database_url: str, database_name: st
     '''
     Create nodes for each document type in the dataset with neomodel.
     Using the DocumentType model.
-    
+
     Parameters
     ----------
     nodes : list
@@ -39,7 +38,7 @@ def create_document_type_nodes(nodes: list, database_url: str, database_name: st
 
             if doc_type:
                 doc_type_node = DocumentType.nodes.get_or_none(type=doc_type)
-            
+
                 if not doc_type_node:
                     doc_type_node = DocumentType(type=doc_type).save()
 
@@ -187,7 +186,7 @@ def create_fos_nodes(nodes: list, database_url: str, database_name: str) -> None
     Create nodes for each field of study in the dataset with neomodel.
     Using the FieldOfStudy model.
     The weight of the field of study is saved when creating Paper node with the PaperFieldOfStudyRel relationship.
-    
+
     Parameters
     ----------
     nodes : list
@@ -227,7 +226,7 @@ def create_paper_nodes(nodes: list, database_url: str, database_name: str) -> No
     '''
     Create nodes for each paper in the dataset with neomodel.
     Using the Paper model.
-    
+
     Parameters
     ----------
     nodes : list
@@ -344,10 +343,10 @@ def create_paper_connections(nodes: list, database_url: str, database_name: str,
 
                 if publisher and InstitutionApp.PUBLISHER in models_list:
                     publisher_node = Publisher.nodes.get(name=publisher)
-                    
+
                     if not paper.publisher.is_connected(publisher_node):
                         paper.publisher.connect(publisher_node)
-                
+
 
                 if venue and InstitutionApp.VENUE in models_list:
                     venue_name = venue.get('raw', None)
@@ -355,7 +354,7 @@ def create_paper_connections(nodes: list, database_url: str, database_name: str,
 
                     if not paper.venue.is_connected(venue_node):
                         paper.venue.connect(venue_node)
-                
+
 
                 if AuthorApp.AUTHOR in models_list or InstitutionApp.ORGANIZATION in models_list:
                     for author in authors:
@@ -364,7 +363,7 @@ def create_paper_connections(nodes: list, database_url: str, database_name: str,
 
                         if not paper.author.is_connected(author_node):
                             paper.author.connect(author_node)
-                
+
 
                 if PaperApp.FIELD_OF_STUDY in models_list:
                     for fos in fields_of_study:

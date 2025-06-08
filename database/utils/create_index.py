@@ -40,7 +40,7 @@ def create_index(node_label: str, field_name: str, database_url:str, database_na
                 print(f'Error: {e}')
             else:
                 raise e
-    
+
     session.close()
     driver.close()
     gc.collect()
@@ -58,7 +58,7 @@ def get_indexes(database_url: str, database_name: str, auth: tuple) -> pd.DataFr
         Name of the database.
     auth : tuple
         Authentication tuple. (username, password)
-    
+
     Returns
     -------
     df : pd.DataFrame
@@ -70,14 +70,14 @@ def get_indexes(database_url: str, database_name: str, auth: tuple) -> pd.DataFr
         result = session.run('SHOW INDEXES')
         indexes = result.data()
         df = pd.DataFrame(indexes)
-    
+
     session.close()
     driver.close()
     gc.collect()
 
     return df
 
-        
+
 
 
 if __name__ == '__main__':

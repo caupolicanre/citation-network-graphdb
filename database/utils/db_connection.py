@@ -2,7 +2,6 @@ import os
 from os.path import join, dirname
 
 import dotenv
-from typing import Union
 
 from core.enums.db_enums import DatabaseType
 
@@ -23,7 +22,7 @@ def neomodel_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, 
     db_option : DatabaseType
         Choose between 'Production' or 'Test' database.
         Default is 'Test'.
-    
+
     Returns
     -------
     tuple[str, str]
@@ -31,7 +30,7 @@ def neomodel_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, 
             URL for connecting to Neo4j database.
         database_name : str
             Name of the database.
-    
+
     Raises
     ------
     ValueError
@@ -79,7 +78,7 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
     db_option : DatabaseType
         Choose between 'Production' or 'Test' database.
         Default is 'Test'.
-    
+
     Returns
     -------
     tuple[str, str]
@@ -89,13 +88,17 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
             Name of the database.
         auth : tuple[str, str]
             Username and password for authentication.
-    
+
     Raises
     ------
     ValueError
         If environment variables for Test or Production database are not found.
     '''
     URI = os.environ.get('DB_URI', None)
+    database_url = None
+    database_name = None
+    auth = None
+
     if not URI:
         raise ValueError('Environment variable for URI not found.')
 
@@ -111,7 +114,7 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
         database_url = f'bolt://{URI}/{TEST_DB_NAME}'
         database_name = TEST_DB_NAME
         auth = AUTH
-    
+
     elif db_option == DatabaseType.PRODUCTION:
         DB_NAME = os.environ.get('DB_NAME', None)
         DB_USER = os.environ.get('DB_USER', None)

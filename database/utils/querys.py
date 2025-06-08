@@ -19,7 +19,7 @@ def count_nodes(database_url: str, database_name: str,
         Name of the database.
     label : Optional[Union[AuthorApp, InstitutionApp, PaperApp]], optional
         Label of the nodes to be counted, by default None.
-    
+
     Returns
     -------
     results[0][0] : int
@@ -32,9 +32,9 @@ def count_nodes(database_url: str, database_name: str,
         query = f"MATCH (n:{label.value}) RETURN count(n)"
     else:
         query = "MATCH (n) RETURN count(n)"
-    
+
     results, meta = db.cypher_query(query)
-    
+
     return results[0][0]
 
 
@@ -57,7 +57,7 @@ def count_relationships(database_url: str, database_name: str,
         Label of the first node in the relationship, by default None.
     node_b : Optional[Union[AuthorApp, InstitutionApp, PaperApp]], optional
         Label of the second node in the relationship, by default None.
-    
+
     Returns
     -------
     results[0][0] : int
@@ -74,9 +74,9 @@ def count_relationships(database_url: str, database_name: str,
         query = f"MATCH ()-[r]->(n:{node_b.value}) RETURN count(r)"
     else:
         query = "MATCH ()-[r]->() RETURN count(r)"
-    
+
     results, meta = db.cypher_query(query)
-    
+
     return results[0][0]
 
 
@@ -98,7 +98,7 @@ def search_node_by_name(database_url: str, database_name: str,
         Label of the node to be searched.
     name : str
         Name of the node to be searched.
-    
+
     Returns
     -------
     results
@@ -138,7 +138,7 @@ def search_path(database_url: str, database_name: str,
         Name of the first node in the path.
     name_b : str
         Name of the second node in the path.
-    
+
     Returns
     -------
     results

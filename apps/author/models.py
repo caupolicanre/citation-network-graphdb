@@ -1,15 +1,7 @@
-import os
-from os.path import join, dirname
-
-import dotenv
-
-from neo4j import GraphDatabase
-import neomodel
 from neomodel import (
-    config, StructuredNode, StructuredRel,
-    UniqueIdProperty, StringProperty, IntegerProperty, FloatProperty, BooleanProperty,
-    DateProperty, DateTimeProperty, DateTimeFormatProperty, AliasProperty, JSONProperty, ArrayProperty,
-    Relationship, RelationshipTo, RelationshipFrom, One, ZeroOrOne, ZeroOrMore, OneOrMore
+    StructuredNode, StructuredRel,
+    UniqueIdProperty, StringProperty, IntegerProperty,
+    RelationshipTo, RelationshipFrom, ZeroOrMore
 )
 
 
@@ -27,5 +19,5 @@ class Author(StructuredNode):
     organization = RelationshipTo('apps.institution.models.Organization', 'AFFILIATED_WITH', cardinality=ZeroOrMore, model=AuthorOrganizationRel)
     paper = RelationshipFrom('apps.paper.models.Paper', 'AUTHORED_BY', cardinality=ZeroOrMore)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name

@@ -1,23 +1,17 @@
-import os
-from os.path import join, dirname
-
-import dotenv
-
-from neo4j import GraphDatabase
-import neomodel
 from neomodel import (
-    config, StructuredNode, StructuredRel,
-    UniqueIdProperty, StringProperty, IntegerProperty, FloatProperty, BooleanProperty,
-    DateProperty, DateTimeProperty, DateTimeFormatProperty, AliasProperty, JSONProperty, ArrayProperty,
-    Relationship, RelationshipTo, RelationshipFrom, One, ZeroOrOne, ZeroOrMore, OneOrMore
+    StructuredNode, StructuredRel,
+    UniqueIdProperty, StringProperty, IntegerProperty, FloatProperty,
+    DateTimeFormatProperty,
+    RelationshipTo, One, ZeroOrOne, ZeroOrMore, OneOrMore
 )
+
 
 
 class DocumentType(StructuredNode):
     type_id = UniqueIdProperty()
     type = StringProperty(unique_index=True, required=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.type
 
 
@@ -25,7 +19,7 @@ class FieldOfStudy(StructuredNode):
     fos_id = UniqueIdProperty()
     name = StringProperty(unique_index=True, required=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -52,5 +46,5 @@ class Paper(StructuredNode):
     field_of_study = RelationshipTo('FieldOfStudy', 'RELATED_TO', cardinality=ZeroOrMore, model=PaperFieldOfStudyRel)
     reference = RelationshipTo('Paper', 'CITES', cardinality=ZeroOrMore)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.title
