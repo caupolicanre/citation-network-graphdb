@@ -2,6 +2,7 @@ import os
 from os.path import join, dirname
 
 import dotenv
+from neo4j import GraphDatabase
 
 from core.enums.db_enums import DatabaseType
 
@@ -37,6 +38,9 @@ def neomodel_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, 
         If environment variables for Test or Production database are not found.
     '''
     URI = os.environ.get('DB_URI', None)
+    database_url = None
+    database_name = None
+
     if not URI:
         raise ValueError('Environment variable for URI not found.')
 
@@ -129,3 +133,26 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
         auth = AUTH
 
     return database_url, database_name, auth
+
+
+def get_neo4j_driver(db_option: DatabaseType = DatabaseType.TEST) -> tuple[GraphDatabase.driver, str]:
+    '''
+    Get the Neo4j driver for connecting to the database.
+
+    Parameters
+    ----------
+    db_option : DatabaseType
+        Choose between 'Production' or 'Test' database.
+        Default is 'Test'.
+
+    Returns
+    -------
+    tuple[GraphDatabase.driver, str]
+        driver : GraphDatabase.driver
+            Neo4j driver for connecting to the database.
+        database_name : str
+            Name of the database.
+    '''
+    database_url, database_name, auth = neo4j_connect(db_option)
+    driver = GraphDatabase.driver(database_url, auth=auth)
+    return driver, database_name
