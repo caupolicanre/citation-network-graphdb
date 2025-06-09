@@ -7,7 +7,9 @@ from neo4j import GraphDatabase
 from core.enums.db_enums import DatabaseType
 
 
-dotenv_path = join(dirname(__file__), '.env')
+# Load .env from the project root directory, not from the current file's directory
+project_root = dirname(dirname(dirname(__file__)))
+dotenv_path = join(project_root, '.env')
 dotenv.load_dotenv(dotenv_path)
 
 
@@ -37,6 +39,9 @@ def neomodel_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, 
     ValueError
         If environment variables for Test or Production database are not found.
     '''
+    dotenv_path = join(project_root, '.env')
+    dotenv.load_dotenv(dotenv_path)
+
     URI = os.environ.get('DB_URI', None)
     database_url = None
     database_name = None
@@ -98,6 +103,9 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
     ValueError
         If environment variables for Test or Production database are not found.
     '''
+    dotenv_path = join(project_root, '.env')
+    dotenv.load_dotenv(dotenv_path)
+
     URI = os.environ.get('DB_URI', None)
     database_url = None
     database_name = None
