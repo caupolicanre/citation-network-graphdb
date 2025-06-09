@@ -6,7 +6,7 @@ class PublicationSchema(BaseModel):
     paper_id: int
     title: str
     doi: Optional[str] = None
-    year: Optional[int] = None
+    year: Optional[str] = None
     n_citation: Optional[int] = 0
 
     class Config:

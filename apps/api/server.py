@@ -16,7 +16,7 @@ app.add_middleware(
 
 app.include_router(authors.router, prefix='/authors', tags=['authors'])
 app.include_router(publications.router, prefix='/publications', tags=['publications'])
-app.include_router(institutions.router, prefix='/institutions', tags=['institutions'])
+# app.include_router(institutions.router, prefix='/institutions', tags=['institutions'])
 app.include_router(fields_of_study.router, prefix='/fields_of_study', tags=['fields_of_study'])
 
 @app.get("/")

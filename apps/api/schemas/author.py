@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class AuthorSchema(BaseModel):
-    author_id: str
+    author_id: int
     name: str
 
     class Config:

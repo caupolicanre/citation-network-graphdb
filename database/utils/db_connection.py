@@ -143,7 +143,7 @@ def neo4j_connect(db_option: DatabaseType = DatabaseType.TEST) -> tuple[str, str
     return database_url, database_name, auth
 
 
-def get_neo4j_driver(db_option: DatabaseType = DatabaseType.TEST) -> tuple[GraphDatabase.driver, str]:
+def get_neo4j_driver(db_option: DatabaseType = DatabaseType.PRODUCTION) -> tuple[GraphDatabase.driver, str]:
     '''
     Get the Neo4j driver for connecting to the database.
 
@@ -151,7 +151,6 @@ def get_neo4j_driver(db_option: DatabaseType = DatabaseType.TEST) -> tuple[Graph
     ----------
     db_option : DatabaseType
         Choose between 'Production' or 'Test' database.
-        Default is 'Test'.
 
     Returns
     -------

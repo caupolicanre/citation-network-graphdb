@@ -10,7 +10,7 @@ from database.utils.db_connection import get_neo4j_driver
 router = APIRouter()
 
 
-@router.get("/institutions", response_model=List[InstitutionSchema])
+@router.get('/', response_model=List[InstitutionSchema])
 async def get_institutions(skip: int = Query(0, ge=0), limit: int = Query(10, gt=0)):
     driver, db_name = get_neo4j_driver()
     query = """
@@ -23,7 +23,7 @@ async def get_institutions(skip: int = Query(0, ge=0), limit: int = Query(10, gt
         institutions = [InstitutionSchema(**record) for record in result]
     return institutions
 
-@router.get("/institutions/{institution_id}", response_model=InstitutionSchema)
+@router.get('/{institution_id}', response_model=InstitutionSchema)
 async def get_institution(institution_id: str):
     driver, db_name = get_neo4j_driver()
     query = """
@@ -33,5 +33,5 @@ async def get_institution(institution_id: str):
     with driver.session(database=db_name) as session:
         record = session.run(query, institution_id=institution_id).single()
         if not record:
-            raise HTTPException(status_code=404, detail="Institution not found")
+            raise HTTPException(status_code=404, detail='Institution not found')
         return InstitutionSchema(**record)

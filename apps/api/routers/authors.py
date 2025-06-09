@@ -10,7 +10,7 @@ from database.utils.db_connection import get_neo4j_driver
 router = APIRouter()
 
 
-@router.get('', response_model=List[AuthorSchema])
+@router.get('/', response_model=List[AuthorSchema])
 async def get_authors(skip: int = Query(0, ge=0), limit: int = Query(10, gt=0)):
     driver, db_name = get_neo4j_driver()
     query = """
@@ -24,7 +24,7 @@ async def get_authors(skip: int = Query(0, ge=0), limit: int = Query(10, gt=0)):
     return authors
 
 @router.get('/{author_id}', response_model=AuthorSchema)
-async def get_author(author_id: str):
+async def get_author(author_id: int):
     driver, db_name = get_neo4j_driver()
     query = """
     MATCH (a:Author {author_id: $author_id})
